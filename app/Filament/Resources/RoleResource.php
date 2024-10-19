@@ -35,23 +35,28 @@ class RoleResource extends Resource
                     TextInput::make('name')
                         ->label('Name')
                         ->required()
-                        ->autofocus(),
-
-                Select::make('permissions')
-                    ->label('Permissions')
-                    ->multiple()
-                    ->relationship('permissions', 'name'),
+                        ->autofocus()
+                        ->unique(ignoreRecord: true),
+                    Select::make('permissions')
+                        ->label('Permissions')
+                        ->multiple()
+                        ->relationship('permissions', 'name'),
                 ]),
-        ]);
+            ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->sortable(),
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->datetime('d-M-Y')
                     ->sortable(),
             ])
             ->filters([
@@ -59,6 +64,7 @@ class RoleResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
