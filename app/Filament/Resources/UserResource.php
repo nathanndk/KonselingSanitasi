@@ -8,6 +8,7 @@ use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Card;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Resources\Resource;
@@ -32,7 +33,6 @@ class UserResource extends Resource
         return $form
             ->schema([
                 Card::make()->schema([
-
                     Forms\Components\TextInput::make('name')
                         ->required()
                         ->maxLength(255),
@@ -47,6 +47,16 @@ class UserResource extends Resource
                         ->dehydrated(fn ($state) => filled($state))
                         ->required(fn (Page $livewire) => ($livewire instanceof CreateUser))
                         ->maxLength(255),
+                    Select::make('roles')
+                        ->label('Roles')
+                        ->multiple()
+                        ->relationship('roles', 'name')
+                        ->preload(),
+                    Select::make('permissions')
+                        ->label('Permissions')
+                        ->multiple()
+                        ->relationship('permissions', 'name')
+                        ->preload(),
                 ])->columns(2),
             ]);
     }
