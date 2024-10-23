@@ -12,7 +12,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Panel;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
@@ -47,8 +47,8 @@ class User extends Authenticatable implements FilamentUser
         'password' => 'hashed',
     ];
 
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this -> hasRole(['Admin', 'Writer']);
-    }
+    // public function canAccessPanel(Panel $panel): bool
+    // {
+    //     return $this -> hasRole(['Admin', 'Writer', 'Moderator']);
+    // }
 }

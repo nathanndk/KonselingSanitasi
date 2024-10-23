@@ -12,7 +12,7 @@ class UserPolicy
     public function viewAny(User $user): bool
     {
         // Mengembalikan nilai boolean sesuai tipe pengembalian yang diharapkan
-        return $user->hasRole(['Admin', 'Writer']);
+        return $user->hasRole(['Admin']);
     }
 
     /**
