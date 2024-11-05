@@ -22,9 +22,16 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'health_center_id',
+        'username',
         'name',
         'email',
         'password',
+        'role',
+        'nik',
+        'date_of_birth',
+        'profile_pic',
+        'gender',
     ];
 
     /**
@@ -47,8 +54,16 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // public function canAccessPanel(Panel $panel): bool
-    // {
-    //     return $this -> hasRole(['Admin', 'Writer', 'Moderator']);
-    // }
+    /**
+     * Relasi dengan model HealthCenter.
+     */
+    public function healthCenter()
+    {
+        return $this->belongsTo(HealthCenter::class);
+    }
+
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id');
+    }
 }

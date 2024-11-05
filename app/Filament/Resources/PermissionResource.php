@@ -53,9 +53,6 @@ class PermissionResource extends Resource
                     ->label('Name')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('created_at')
-                    ->datetime('d-M-Y')
-                    ->sortable(),
             ])
             ->filters([
                 //

@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use App\Enums\RoleUser;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,20 +15,81 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        // Define permissions with capitalized words
+        $permissions = [
+            'View Posts',
+            'Create Posts',
+            'Edit Posts',
+            'Delete Posts',
+            'View Users',
+            'Create Users',
+            'Edit Users',
+            'Delete Users'
+        ];
 
-        $user1 = User::factory()->create([
+        // Create permissions
+        foreach ($permissions as $permissionName) {
+            Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web']);
+        }
+
+        // Define roles and assign permissions
+        $rolesPermissions = [
+            'Admin' => ['View Posts', 'Create Posts', 'Edit Posts', 'Delete Posts', 'View Users', 'Create Users', 'Edit Users', 'Delete Users'],
+            'Kader' => ['View Posts', 'Create Posts'],
+            'Petugas' => ['View Posts'],
+            'Puskesmas' => ['View Posts'],
+            'Dinas Kesehatan' => ['View Posts'],
+        ];
+
+        foreach ($rolesPermissions as $roleName => $permissions) {
+            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+            $role->syncPermissions($permissions);
+        }
+
+        // Seed users with roles
+        $adminUser = User::factory()->create([
+            'username' => 'admin_user',
             'name' => 'Admin',
             'email' => 'admin@admin.com',
+            'password' => bcrypt('password'),
+            'role' => RoleUser::Admin->value,
+            'nik' => '1234567890123456',
+            'date_of_birth' => '1990-01-01',
+            'gender' => 'L',
+        ]);
+        $adminUser->assignRole('Admin');
+
+        // Create additional users for each role
+        $this->createUserWithRole('Kader', 'kader@user.com', 'kader_user', RoleUser::Kader->value);
+        $this->createUserWithRole('Petugas', 'petugas@user.com', 'petugas_user', RoleUser::Petugas->value);
+        $this->createUserWithRole('Puskesmas', 'puskesmas@user.com', 'puskesmas_user', RoleUser::Puskesmas->value);
+        $this->createUserWithRole('Dinas Kesehatan', 'dinkes@user.com', 'dinkes_user', RoleUser::DinasKesehatan->value);
+
+        // Call additional seeders
+        $this->call([
+            AddressSeeder::class,
+            PatientSeeder::class,
+            HouseConditionSeeder::class,
+            PdamParameterCategorySeeder::class,
+            PDAMParameterSeeder::class,
+            SanitationConditionSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test',
-            'email' => 'test@test.com',
+        $this->command->info('Database seeding selesai.');
+    }
+
+    private function createUserWithRole($role, $email, $username, $roleEnumValue)
+    {
+        $user = User::factory()->create([
+            'username' => $username,
+            'name' => ucfirst($role) . ' User',
+            'email' => $email,
+            'password' => bcrypt('password'),
+            'role' => $roleEnumValue,
+            'nik' => '1234567890123' . rand(10, 99),
+            'date_of_birth' => '1990-01-01',
+            'gender' => 'L',
         ]);
-
-        $role = Role::create(['name' => 'Admin']);
-
-        $user1->assignRole($role);
+        $user->assignRole($role);
     }
 }

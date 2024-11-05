@@ -24,23 +24,24 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('admin')
-            ->path('admin')
+            ->id('')
+            ->path('/')
             ->login()
             ->colors([
                 'danger' => Color::Rose,
                 'gray' => Color::Slate,
                 'info' => Color::Blue,
-                'primary' => Color::Indigo,
-                'success' => Color::Emerald,
-                'warning' => Color::Orange,
+                'primary' => Color::Red,
+                'success' => Color::Green,
+                'warning' => Color::Yellow,
             ])
-            ->font('Poppins')
+            ->font('Inter')
+            ->brandName('Dinas Kesehatan')
+            ->brandLogo(asset('images/logo_dinkes.png'))
+            ->favicon(asset('images/logo_dinkes.png'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([
-                Pages\Dashboard::class,
-            ])
+            ->pages([])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
