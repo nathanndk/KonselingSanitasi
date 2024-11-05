@@ -17,6 +17,6 @@ class CreateRole extends CreateRecord
 
     protected function getCreatedNotificationTitle(): ?string
     {
-        return 'Role Created';
+        return 'Role telah dibuat!';
     }
 }

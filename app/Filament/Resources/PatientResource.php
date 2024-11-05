@@ -24,7 +24,7 @@ class PatientResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Patients';
+    protected static ?string $navigationGroup = 'Master Data';
 
     public static function getPluralLabel(): string
     {

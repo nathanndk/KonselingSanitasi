@@ -12,6 +12,15 @@ class CreateHealthCenter extends CreateRecord
 {
     protected static string $resource = HealthCenterResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Data Puskesmas Telah dibuat!';
+    }
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Create or find an Address record
@@ -33,4 +42,6 @@ class CreateHealthCenter extends CreateRecord
 
         return $data;
     }
+
+
 }

@@ -10,11 +10,11 @@ class CreateAddressTable extends Migration
     {
         Schema::create('address', function (Blueprint $table) {
             $table->id();
-            $table->string('street');
-            $table->string('subdistrict');
-            $table->string('district');
-            $table->string('city');
-            $table->string('province');
+            $table->string('street')->nullable();
+            $table->string('subdistrict')->nullable();
+            $table->string('district')->nullable();
+            $table->string('city')->nullable();
+            $table->string('province')->nullable();
             $table->timestamps();
         });
     }

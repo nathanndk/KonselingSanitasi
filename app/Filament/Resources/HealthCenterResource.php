@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\HealthCenterResource\Pages;
 use App\Models\HealthCenter;
-use App\Models\Address;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,10 +11,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Fieldset;
-use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\Card;
 
 class HealthCenterResource extends Resource
 {
@@ -39,44 +36,43 @@ class HealthCenterResource extends Resource
     {
         return $form
             ->schema([
-                Card::make()
-                    ->schema([
-                        TextInput::make('name')
-                            ->label('Nama Puskesmas')
-                            ->required()
-                            ->maxLength(255),
+                Card::make()->schema([
+                    // Fieldset pertama untuk detail Puskesmas
+                    Fieldset::make('Detail Puskesmas')
+                        ->schema([
+                            TextInput::make('name')
+                                ->label('Nama Puskesmas')
+                                ->required()
+                                ->maxLength(255),
 
-                        // Nested Form for Address
-                        Fieldset::make('Alamat')
-                            ->schema([
-                                TextInput::make('address.street')
-                                    ->label('Jalan')
-                                    ->required(),
+                            TextInput::make('phone_number')
+                                ->label('Nomor Telepon')
+                                ->maxLength(16),
+                        ])
+                        ->columns(2),
 
-                                TextInput::make('address.subdistrict')
-                                    ->label('Kelurahan')
-                                    ->required(),
+                    // Fieldset kedua untuk detail alamat
+                    Fieldset::make('Alamat')
+                        ->schema([
+                            TextInput::make('address.street')
+                                ->label('Jalan'),
 
-                                TextInput::make('address.district')
-                                    ->label('Kecamatan')
-                                    ->required(),
+                            TextInput::make('address.subdistrict')
+                                ->label('Kelurahan'),
 
-                                TextInput::make('address.city')
-                                    ->label('Kota')
-                                    ->required(),
+                            TextInput::make('address.district')
+                                ->label('Kecamatan'),
 
-                                TextInput::make('address.province')
-                                    ->label('Provinsi')
-                                    ->required(),
-                            ])
-                            ->columns(2)
-                            ->label('Detail Alamat'),
-                    ])
-                    ->columns(2)
-                    ->label('Detail Puskesmas'),
-                            ]);
+                            TextInput::make('address.city')
+                                ->label('Kota'),
+
+                            TextInput::make('address.province')
+                                ->label('Provinsi'),
+                        ])
+                        ->columns(2),
+                ]),
+            ]);
     }
-
 
     public static function table(Table $table): Table
     {
@@ -86,6 +82,10 @@ class HealthCenterResource extends Resource
                     ->label('Nama Puskesmas')
                     ->searchable()
                     ->sortable(),
+
+                TextColumn::make('phone_number')
+                    ->label('Nomor Telepon')
+                    ->searchable(),
 
                 TextColumn::make('address.street')
                     ->label('Alamat')

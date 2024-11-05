@@ -12,7 +12,7 @@ class CreateHealthCenterTable extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('address_id')->constrained('address');
-            $table->string('phone_number');
+            $table->string('phone_number')->nullable();
             $table->timestamps();
         });
     }

@@ -12,6 +12,15 @@ class CreatePatient extends CreateRecord
 {
     protected static string $resource = PatientResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Data Pasien Telah dibuat!';
+    }
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Create or find an Address record
@@ -32,10 +41,5 @@ class CreatePatient extends CreateRecord
         unset($data['address']);
 
         return $data;
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
     }
 }

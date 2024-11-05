@@ -25,14 +25,13 @@ class EditPatient extends EditRecord
         return $data;
     }
 
-    protected function afterSave(): void
+    protected function getSavedNotificationTitle(): ?string
     {
-        // Tambahkan logika yang ingin dijalankan setelah menyimpan data, jika diperlukan
+        return 'Data Pasien telah diperbarui!';
     }
 
     protected function getRedirectUrl(): string
     {
-        // Redirect kembali ke halaman utama pasien setelah edit selesai
         return $this->getResource()::getUrl('index');
     }
 }

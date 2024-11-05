@@ -10,8 +10,17 @@ class SanitationCondition extends Model
     use HasFactory;
 
     protected $fillable = [
-        'description', 'created_by', 'updated_by'
+        'counseling_date',
+        'patient_id',
+        'condition',
+        'recommendation',
+        'home_visit_date',
+        'intervention',
+        'notes',
+        'created_by',
+        'updated_by'
     ];
+
 
     public function counselingReports()
     {
@@ -19,8 +28,8 @@ class SanitationCondition extends Model
     }
 
     public function patient()
-{
-    return $this->belongsTo(\App\Models\Patient::class);
-}
+    {
+        return $this->belongsTo(\App\Models\Patient::class);
+    }
 
 }

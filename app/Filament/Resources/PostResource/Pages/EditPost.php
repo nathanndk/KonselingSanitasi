@@ -17,7 +17,6 @@ class EditPost extends EditRecord
         ];
     }
 
-
     protected function getSavedNotificationTitle(): ?string
     {
         return 'Post updated';

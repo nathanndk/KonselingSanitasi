@@ -16,4 +16,13 @@ class EditHealthCenter extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Data Puskesmas telah diperbarui!';
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
