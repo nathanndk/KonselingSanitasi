@@ -24,7 +24,7 @@ class PDAMParameterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Laporan';
+    protected static ?string $navigationGroup = 'Master Data';
 
     public static function getPluralLabel(): string
     {
@@ -45,12 +45,12 @@ class PDAMParameterResource extends Resource
                     ->required(),
 
                 Repeater::make('parameters')
-                    ->relationship('parameters')
+                    ->relationship('parameters') // This should match the relationship in PDAMCondition
                     ->label('Parameter')
                     ->schema([
                         Select::make('parameter_category_id')
                             ->label('Kategori Parameter')
-                            ->relationship('category', 'name')
+                            ->relationship('category', 'name') // Matches the relationship in PDAMParameter model
                             ->nullable()
                             ->preload()
                             ->createOptionForm([
@@ -69,7 +69,7 @@ class PDAMParameterResource extends Resource
                             ->nullable(),
                     ])
                     ->minItems(1)
-                    ->createItemButtonLabel('Tambah Parameter'),
+                    ->createItemButtonLabel('Tambah Parameter')
             ]);
     }
 

@@ -11,8 +11,9 @@ class CreateHealthCenterTable extends Migration
         Schema::create('health_centers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('kc_code');
+            $table->string('p_code');
             $table->foreignId('address_id')->constrained('address');
-            $table->string('phone_number')->nullable();
             $table->timestamps();
         });
     }

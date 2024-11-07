@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\HouseConditionValueResource\Pages;
 use App\Filament\Resources\HouseConditionValueResource\RelationManagers;
 use App\Models\HouseConditionValue;
+use App\Models\HouseParameterValue;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,9 +16,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class HouseConditionValueResource extends Resource
 {
-    protected static ?string $model = HouseConditionValue::class;
+    protected static ?string $model = HouseParameterValue::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $navigationGroup = 'Laporan';
 
     public static function form(Form $form): Form
     {

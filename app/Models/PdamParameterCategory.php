@@ -13,18 +13,12 @@ class PdamParameterCategory extends Model
         'name', 'created_by', 'updated_by'
     ];
 
+    /**
+     * Relationship to PDAMParameter model.
+     * Each category can have multiple parameters.
+     */
     public function parameters()
     {
-        return $this->hasMany(PDAMParameter::class, 'parameter_category_id');
-    }
-
-    public function condition()
-    {
-        return $this->belongsTo(PDAMCondition::class, 'condition_id');
-    }
-
-    public function values()
-    {
-        return $this->hasMany(PdamParameterValue::class, 'category_id');
+        return $this->hasMany(PdamParameter::class, 'parameter_category_id');
     }
 }
