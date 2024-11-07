@@ -21,7 +21,7 @@ class HouseConditionResource extends Resource
 {
     protected static ?string $model = HouseCondition::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
     protected static ?string $navigationGroup = 'Master Data';
 
