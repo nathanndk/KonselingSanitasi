@@ -67,12 +67,15 @@ class DatabaseSeeder extends Seeder
 
         // Call additional seeders
         $this->call([
+            DistrictSeeder::class,
+            SubdistrictSeeder::class,
             AddressSeeder::class,
             PatientSeeder::class,
             HouseConditionSeeder::class,
             PdamParameterCategorySeeder::class,
             PDAMParameterSeeder::class,
             SanitationConditionSeeder::class,
+            HealthCenterSeeder::class,
         ]);
 
         $this->command->info('Database seeding selesai.');

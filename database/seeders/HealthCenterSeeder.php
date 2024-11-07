@@ -1,13 +1,15 @@
 <?php
 
+namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\HealthCenter;
 
 class HealthCenterSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('health_center')->insert([
+        $healthCenters = [
             ['id' => 1, 'name' => 'Poncol', 'kc_code' => 'KC01', 'p_code' => 'P01', 'created_at' => now(), 'updated_at' => now()],
             ['id' => 2, 'name' => 'Miroto', 'kc_code' => 'KC02', 'p_code' => 'P02', 'created_at' => now(), 'updated_at' => now()],
             ['id' => 3, 'name' => 'Bandarharjo', 'kc_code' => 'KC02', 'p_code' => 'P03', 'created_at' => now(), 'updated_at' => now()],
@@ -47,6 +49,10 @@ class HealthCenterSeeder extends Seeder
             ['id' => 37, 'name' => 'Karanganyar', 'kc_code' => 'KC16', 'p_code' => 'P37', 'created_at' => now(), 'updated_at' => now()],
             ['id' => 38, 'name' => 'Plamongansari', 'kc_code' => 'KC10', 'p_code' => 'P38', 'created_at' => now(), 'updated_at' => now()],
             ['id' => 39, 'name' => 'Bulusan', 'kc_code' => 'KC11', 'p_code' => 'P39', 'created_at' => now(), 'updated_at' => now()],
-        ]);
+        ];
+
+        foreach ($healthCenters as $attributes) {
+            HealthCenter::firstOrCreate(['p_code' => $attributes['p_code']], $attributes);
+        }
     }
 }
