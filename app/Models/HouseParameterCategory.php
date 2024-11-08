@@ -13,18 +13,18 @@ class HouseParameterCategory extends Model
         'name', 'created_by', 'updated_by'
     ];
 
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
     public function parameters()
     {
-        return $this->hasMany(HouseParameter::class);
+        return $this->hasMany(HouseParameter::class, 'parameter_id');
+    }
+
+    public function conditions()
+    {
+        return $this->hasMany(HouseCondition::class, 'house_condition_id');
+    }
+
+    public function values()
+    {
+        return $this->hasMany(HouseParameterValue::class, 'parameter_category_id');
     }
 }

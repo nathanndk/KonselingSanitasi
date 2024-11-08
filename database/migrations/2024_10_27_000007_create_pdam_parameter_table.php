@@ -18,6 +18,7 @@ class CreatePdamParameterTable extends Migration
 
             $table->foreignId('condition_id')->nullable()->constrained('pdam_conditions')->onDelete('cascade');
             $table->string('name');
+            $table->string('value')->nullable()->default(null);
             // $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();

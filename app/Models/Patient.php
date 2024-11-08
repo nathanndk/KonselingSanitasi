@@ -32,4 +32,14 @@ class Patient extends Model
     {
         return $this->belongsTo(SanitationCondition::class);
     }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function subdistrict()
+    {
+        return $this->belongsTo(Subdistrict::class);
+    }
 }

@@ -2,10 +2,13 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Login as FilamentAuthLogin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
+use Filament\Auth\Login;
+use Filament\Pages\Auth\Login as AuthLogin;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -26,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('')
             ->path('/')
-            ->login()
+            ->login(FilamentAuthLogin::class)
             ->colors([
                 'danger' => Color::Rose,
                 'gray' => Color::Slate,

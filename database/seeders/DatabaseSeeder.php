@@ -71,9 +71,9 @@ class DatabaseSeeder extends Seeder
             SubdistrictSeeder::class,
             AddressSeeder::class,
             PatientSeeder::class,
-            HouseConditionSeeder::class,
-            PdamParameterCategorySeeder::class,
-            PDAMParameterSeeder::class,
+            // HouseConditionSeeder::class,
+            // PdamParameterCategorySeeder::class,
+            // PDAMParameterSeeder::class,
             SanitationConditionSeeder::class,
             HealthCenterSeeder::class,
         ]);

@@ -15,11 +15,16 @@ class HouseParameterValue extends Model
 
     public function parameters()
     {
-        return $this->belongsTo(HouseParameter::class);
+        return $this->belongsTo(HouseParameter::class, 'parameter_id');
     }
 
     public function conditions()
     {
-        return $this->belongsTo(HouseCondition::class);
+        return $this->belongsTo(HouseCondition::class, 'house_condition_id');
+    }
+
+    public function categories()
+    {
+        return $this->belongsTo(HouseParameterCategory::class, 'parameter_category_id');
     }
 }

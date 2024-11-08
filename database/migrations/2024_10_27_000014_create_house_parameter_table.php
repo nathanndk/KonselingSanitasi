@@ -17,6 +17,7 @@ class CreateHouseParameterTable extends Migration
                   ->constrained('house_conditions')
                   ->onDelete('cascade');
             $table->string('name');
+            $table->boolean('value')->nullable();
             // $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
             $table->foreignId('updated_by')->nullable()->constrained('users');

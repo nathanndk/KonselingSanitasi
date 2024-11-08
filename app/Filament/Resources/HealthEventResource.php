@@ -26,16 +26,16 @@ class HealthEventResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-heart';
 
-    protected static ?string $navigationGroup = 'Jadwal Acara Kesehatan';
+    protected static ?string $navigationGroup = 'Acara Kesehatan';
 
     public static function getPluralLabel(): string
     {
-        return 'Acara Kesehatan';
+        return 'Jadwal Acara';
     }
 
     public static function getNavigationLabel(): string
     {
-        return 'Acara Kesehatan';
+        return 'Jadwal Acara';
     }
 
     public static function form(Form $form): Form

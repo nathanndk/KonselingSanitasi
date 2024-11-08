@@ -9,30 +9,18 @@ class PdamParameter extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'parameter_category_id', 'condition_id', 'created_by', 'updated_by'];
+    protected $fillable = ['name', 'parameter_category_id', 'value', 'condition_id', 'created_by', 'updated_by'];
 
-    /**
-     * Relationship to PDAMParameterCategory model.
-     * Each parameter belongs to one category.
-     */
-    public function category()
+    public function categories()
     {
         return $this->belongsTo(PdamParameterCategory::class, 'parameter_category_id');
     }
 
-    /**
-     * Relationship to PDAMCondition model.
-     * Each parameter belongs to one condition.
-     */
-    public function condition()
+    public function conditions()
     {
         return $this->belongsTo(PdamCondition::class, 'condition_id');
     }
 
-    /**
-     * Relationship to PDAMParameterValue model.
-     * Each parameter can have multiple values.
-     */
     public function values()
     {
         return $this->hasMany(PdamParameterValue::class, 'parameter_id');

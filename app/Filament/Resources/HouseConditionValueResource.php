@@ -22,6 +22,16 @@ class HouseConditionValueResource extends Resource
 
     protected static ?string $navigationGroup = 'Laporan';
 
+    public static function getPluralLabel(): string
+    {
+        return 'Rumah Sehat';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Rumah Sehat';
+    }
+
     public static function form(Form $form): Form
     {
         return $form

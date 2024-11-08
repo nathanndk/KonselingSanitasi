@@ -16,6 +16,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
 use Illuminate\Support\Facades\Auth;
 
 class PDAMParameterResource extends Resource
@@ -28,49 +31,65 @@ class PDAMParameterResource extends Resource
 
     public static function getPluralLabel(): string
     {
-        return 'PDAM';
+        return 'PDAM Form';
     }
 
     public static function getNavigationLabel(): string
     {
-        return 'PDAM';
+        return 'PDAM Form';
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('description')
-                    ->label('Deskripsi Kondisi')
-                    ->required(),
-
-                Repeater::make('parameters')
-                    ->relationship('parameters') // This should match the relationship in PDAMCondition
-                    ->label('Parameter')
+                Card::make()
                     ->schema([
-                        Select::make('parameter_category_id')
-                            ->label('Kategori Parameter')
-                            ->relationship('category', 'name') // Matches the relationship in PDAMParameter model
-                            ->nullable()
-                            ->preload()
-                            ->createOptionForm([
-                                TextInput::make('name')
-                                    ->label('Nama Kategori')
-                                    ->required(),
-                            ]),
-
-                        TextInput::make('name')
-                            ->label('Nama Parameter')
+                        TextInput::make('description')
+                            ->label('Deskripsi Kondisi')
+                            ->placeholder('Masukkan deskripsi kondisi...')
                             ->required(),
-
-                        TextInput::make('value')
-                            ->label('Nilai Parameter')
-                            ->numeric()
-                            ->nullable(),
                     ])
-                    ->minItems(1)
-                    ->createItemButtonLabel('Tambah Parameter')
-            ]);
+                    ->columnSpan('full')
+                    ->columns(1),
+
+                Section::make('Detail Parameter') // Menggunakan Section sebagai pemisah
+                    ->schema([
+                        Repeater::make('parameters')
+                            ->relationship('parameters')
+                            ->label('Parameter')
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
+                                        Select::make('parameter_category_id')
+                                            ->label('Kategori Parameter')
+                                            ->relationship('categories', 'name')
+                                            ->nullable()
+                                            ->preload()
+                                            ->createOptionForm([
+                                                TextInput::make('name')
+                                                    ->label('Nama Kategori')
+                                                    ->required(),
+                                            ])
+                                            ->placeholder('Pilih kategori parameter...'),
+
+                                        TextInput::make('name')
+                                            ->label('Nama Parameter')
+                                            ->required()
+                                            ->placeholder('Masukkan nama parameter...'),
+
+                                        TextInput::make('value')
+                                            ->label('Nilai Parameter')
+                                            ->placeholder('Masukkan nilai parameter...'),
+                                    ]),
+                            ])
+                            ->minItems(1)
+                            ->createItemButtonLabel('Tambah Parameter')
+                            ->columns(1),
+                    ])
+                    ->columnSpan('full'),
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
@@ -82,7 +101,7 @@ class PDAMParameterResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('parameters.category.name')
+                TextColumn::make('parameters.categories.name')
                     ->label('Kategori Parameter')
                     ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state)
                     ->sortable(),
@@ -128,7 +147,6 @@ class PDAMParameterResource extends Resource
     {
         return [
             'index' => Pages\ListPDAMParameters::route('/'),
-            'create' => Pages\CreatePDAMParameter::route('/create'),
             'edit' => Pages\EditPDAMParameter::route('/{record}/edit'),
         ];
     }

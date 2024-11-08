@@ -10,20 +10,23 @@ class PdamCondition extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['description', 'created_by', 'updated_by'];
+    protected $fillable = ['description', 'created_by', 'updated_by', 'value'];
 
-    /**
-     * Relationship to PDAMParameter model.
-     * Each condition can have multiple parameters.
-     */
     public function parameters()
     {
         return $this->hasMany(PdamParameter::class, 'condition_id');
     }
 
-    /**
-     * Automatically set created_by and updated_by fields.
-     */
+    public function values()
+    {
+        return $this->hasMany(PdamParameterValue::class, 'pdam_condition_id');
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(PdamParameterCategory::class, 'pdam_condition_id');
+    }
+
     protected static function booted()
     {
         static::creating(function ($model) {

@@ -13,14 +13,7 @@ class CreateHealthCenterTable extends Migration
             $table->string('name');
             $table->string('kc_code');
             $table->string('p_code');
-            $table->unsignedBigInteger('address_id')->nullable(); // Ensure this matches the type of `id` in `address`
             $table->timestamps();
-
-            // Foreign key constraint
-            $table->foreign('address_id')
-                  ->references('id')
-                  ->on('address')
-                  ->onDelete('set null');
         });
     }
 

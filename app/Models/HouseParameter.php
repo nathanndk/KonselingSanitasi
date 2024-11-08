@@ -10,26 +10,22 @@ class HouseParameter extends Model
     use HasFactory;
 
     protected $fillable = [
-        'parameter_category_id', 'name', 'created_by', 'updated_by'
+        'parameter_category_id', 'name', 'created_by', 'updated_by', 'value', 'house_condition_id'
     ];
 
-    public function category()
+    public function categories()
     {
         return $this->belongsTo(HouseParameterCategory::class, 'parameter_category_id');
     }
 
-    public function parameters()
+    public function conditions()
     {
-        return $this->hasMany(HouseParameterValue::class);
-    }
-
-    public function condition()
-    {
-        return $this->hasMany(HouseCondition::class);
+        return $this->hasMany(HouseCondition::class,'house_condition_id');
     }
 
     public function values()
     {
         return $this->hasMany(HouseParameterValue::class, 'parameter_id');
     }
+
 }

@@ -11,7 +11,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Grid;
@@ -25,34 +24,43 @@ class PDAMValueResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
     protected static ?string $navigationGroup = 'Laporan';
 
+    public static function getPluralLabel(): string
+    {
+        return 'PDAM';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'PDAM';
+    }
 
     public static function form(Form $form): Form
     {
-        // Mengambil semua kategori parameter dan kondisi dari database
-        $categories = PDAMParameterCategory::with(['parameters' => function ($query) {
-            $query->whereNotNull('name'); // Hanya ambil parameter yang memiliki nama
-        }])->get();
+        $categories = PDAMParameterCategory::with([
+            'parameters' => function ($query) {
+                $query->whereNotNull('name');
+            }
+        ])->get();
         $conditions = PDAMCondition::all();
 
         return $form
             ->schema([
                 Card::make([
-                    Grid::make(2) // Mengatur grid untuk tampilan dua kolom
+                    Grid::make(2)
                         ->schema(
                             $conditions->map(function ($condition) use ($categories) {
-                                // Hanya tampilkan kondisi jika memiliki kategori dengan parameter
                                 $filteredCategories = $categories->filter(function ($category) {
-                                    return !$category->parameters->isEmpty(); // Hanya ambil kategori yang memiliki parameter
+                                    return !$category->parameters->isEmpty();
                                 });
 
                                 if ($filteredCategories->isEmpty()) {
-                                    return null; // Abaikan kondisi yang tidak memiliki kategori dengan parameter
+                                    return null;
                                 }
 
                                 return Card::make([
                                     Placeholder::make('condition_placeholder')
                                         ->label('Kondisi: ' . $condition->description)
-                                        ->columnSpanFull(), // Membuat nama kondisi tampil penuh
+                                        ->columnSpanFull(),
 
                                     Grid::make(1)
                                         ->schema(
@@ -62,11 +70,10 @@ class PDAMValueResource extends Resource
                                                         ->label('Kategori: ' . $category->name)
                                                         ->columnSpanFull(),
 
-                                                    // Menggunakan grid untuk parameter dalam kategori
-                                                    Grid::make(2) // Mengatur dua kolom untuk parameter
+                                                    Grid::make(2)
                                                         ->schema(
-                                                            $category->parameters->map(function ($parameter) {
-                                                                return TextInput::make("parameter_values.{$parameter->id}")
+                                                            $category->parameters->map(function ($parameter) use ($condition) {
+                                                                return TextInput::make("value.{$condition->id}.{$parameter->id}")
                                                                     ->label($parameter->name)
                                                                     ->numeric()
                                                                     ->default(0)
@@ -74,14 +81,14 @@ class PDAMValueResource extends Resource
                                                             })->toArray()
                                                         )
                                                         ->columnSpanFull(),
-                                                ])->columnSpanFull(); // Membuat card kategori penuh dalam kondisi
+                                                ])->columnSpanFull();
                                             })->toArray()
                                         )
-                                        ->columnSpanFull(), // Membuat grid kategori penuh dalam kondisi
-                                ])->columnSpan(1); // Setiap card kondisi akan mengambil setengah layar
-                            })->filter()->toArray() // Filter untuk mengabaikan kondisi kosong
+                                        ->columnSpanFull(),
+                                ])->columnSpan(1);
+                            })->filter()->toArray()
                         ),
-                ])->columnSpanFull() // Membuat card utama penuh di form
+                ])->columnSpanFull(),
             ]);
     }
 
@@ -89,15 +96,24 @@ class PDAMValueResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('parameter_name')
+                TextColumn::make('conditions.description')
+                    ->label('Deskripsi Kondisi')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('parameters.categories.name')
+                    ->label('Kategori Parameter')
+                    ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : (string) $state)
+                    ->sortable(),
+
+                TextColumn::make('parameters.name')
                     ->label('Parameter')
-                    ->sortable()
-                    ->searchable(),
+                    ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : (string) $state)
+                    ->sortable(),
 
                 TextColumn::make('value')
                     ->label('Nilai')
-                    ->sortable()
-                    ->searchable(),
+                    ->sortable(),
 
                 TextColumn::make('created_at')
                     ->label('Dibuat Pada')
@@ -105,13 +121,17 @@ class PDAMValueResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Diperbarui Pada')
+                    ->label('Diupdate Pada')
                     ->dateTime()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([])
+            ->filters([
+                // Tambahkan filter jika diperlukan
+            ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
