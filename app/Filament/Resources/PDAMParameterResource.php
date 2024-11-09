@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\PdamConditionExporter;
 use App\Filament\Resources\PDAMParameterResource\Pages;
 use App\Models\PDAMCondition;
 use App\Models\PDAMParameter;
 use App\Models\PDAMParameterCategory;
 use App\Models\PDAMParameterValue;
+use Filament\Tables\Actions\ExportAction; // Pastikan namespace ini benar
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -19,6 +21,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
+use Filament\Tables\Actions\ExportBulkAction;
 use Illuminate\Support\Facades\Auth;
 
 class PDAMParameterResource extends Resource
@@ -131,8 +134,13 @@ class PDAMParameterResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
+            ->headerActions([
+                ExportAction::make()
+                ->exporter(PdamConditionExporter::class)
+            ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
+                ExportBulkAction::make()->exporter(PdamConditionExporter::class),
             ]);
     }
 

@@ -38,6 +38,7 @@ class AdminPanelProvider extends PanelProvider
                 'success' => Color::Green,
                 'warning' => Color::Yellow,
             ])
+            ->databaseNotifications()
             ->font('Inter')
             ->brandName('Dinas Kesehatan')
             ->brandLogo(asset('images/logo_dinkes.png'))
