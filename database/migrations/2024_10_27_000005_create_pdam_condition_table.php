@@ -10,6 +10,7 @@ class CreatePdamConditionTable extends Migration
     {
         Schema::create('pdam_conditions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('event_id')->nullable()->constrained('health_events')->cascadeOnDelete();
             $table->text('description')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');

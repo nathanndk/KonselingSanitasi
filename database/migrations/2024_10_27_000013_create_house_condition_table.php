@@ -12,6 +12,7 @@ class CreateHouseConditionTable extends Migration
         Schema::create('house_conditions', function (Blueprint $table) {
             $table->id();
             $table->text('description');
+            $table->foreignId('event_id')->nullable()->constrained('health_events')->cascadeOnDelete();
             $table->timestamps();
             $table->foreignId('updated_by')->nullable()->constrained('users');
         });

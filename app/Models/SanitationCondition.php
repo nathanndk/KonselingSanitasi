@@ -32,4 +32,9 @@ class SanitationCondition extends Model
         return $this->belongsTo(\App\Models\Patient::class);
     }
 
+    public function event()
+    {
+        return $this->belongsTo(HealthEvent::class, 'event_id');
+    }
+
 }

@@ -11,18 +11,18 @@ class CreateAddressTable extends Migration
         Schema::create('address', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('street');
-            $table->unsignedBigInteger('district_id');
-            $table->unsignedBigInteger('subdistrict_id');
+            $table->string('district_code');
+            $table->string('subdistrict_code');
             $table->timestamps();
 
             // Foreign key constraints
-            $table->foreign('district_id')
-                  ->references('id')
+            $table->foreign('district_code')
+                  ->references('district_code')
                   ->on('district')
                   ->onDelete('cascade');
 
-            $table->foreign('subdistrict_id')
-                  ->references('id')
+            $table->foreign('subdistrict_code')
+                  ->references('subdistrict_code')
                   ->on('subdistrict')
                   ->onDelete('cascade');
         });

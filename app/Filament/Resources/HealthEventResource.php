@@ -3,7 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\HealthEventResource\Pages;
+use App\Filament\Resources\HealthEventResource\RelationManagers\CounselingReportsRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\HouseConditionsRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\PatientsRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\PdamConditionsRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\PdamParametersRelationManager;
 use App\Models\HealthEvent;
+use App\Models\Patient;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -87,10 +93,6 @@ class HealthEventResource extends Resource
                     ])
             ]);
     }
-
-
-
-
 
     public static function table(Table $table): Table
     {
@@ -197,7 +199,10 @@ class HealthEventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Definisikan relasi jika diperlukan
+            PatientsRelationManager::class,
+            HouseConditionsRelationManager::class,
+            PdamConditionsRelationManager::class,
+            CounselingReportsRelationManager::class,
         ];
     }
 

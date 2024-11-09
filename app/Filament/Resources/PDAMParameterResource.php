@@ -8,7 +8,7 @@ use App\Models\PDAMCondition;
 use App\Models\PDAMParameter;
 use App\Models\PDAMParameterCategory;
 use App\Models\PDAMParameterValue;
-use Filament\Tables\Actions\ExportAction; // Pastikan namespace ini benar
+use Filament\Tables\Actions\ExportAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -56,7 +56,7 @@ class PDAMParameterResource extends Resource
                     ->columnSpan('full')
                     ->columns(1),
 
-                Section::make('Detail Parameter') // Menggunakan Section sebagai pemisah
+                Section::make('Detail Parameter')
                     ->schema([
                         Repeater::make('parameters')
                             ->relationship('parameters')

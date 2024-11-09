@@ -27,4 +27,30 @@ class HealthEvent extends Model
     {
         return $this->hasMany(EventStatus::class, 'event_id');
     }
+
+    public function patients()
+    {
+        return $this->belongsToMany(Patient::class, 'event_id');
+    }
+
+    public function pdamConditions()
+    {
+        return $this->hasMany(PdamCondition::class, 'event_id');
+    }
+
+    public function sanitationConditions()
+    {
+        return $this->hasMany(SanitationCondition::class, 'event_id');
+    }
+
+    public function counselingReports()
+    {
+        return $this->hasMany(SanitationCondition::class, 'event_id');
+    }
+
+    public function houseConditions()
+    {
+        return $this->hasMany(HouseCondition::class, 'event_id');
+    }
+
 }

@@ -9,11 +9,16 @@ class CreateSubdistrictTable extends Migration
     public function up()
     {
         Schema::create('subdistrict', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->string('subdistrict_code', 255)->primary();
             $table->string('subdistrict_name', 255);
-            $table->string('subdistrict_code', 255);
             $table->string('district_code', 255);
             $table->timestamps();
+
+            // Foreign key constraint
+            $table->foreign('district_code')
+                  ->references('district_code')
+                  ->on('district')
+                  ->onDelete('cascade');
         });
     }
 

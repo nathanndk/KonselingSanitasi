@@ -21,23 +21,26 @@ class CreatePatient extends CreateRecord
     {
         return 'Data Pasien Telah dibuat!';
     }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Create or find an Address record
-        $address = Address::create([
-            'street' => $data['address']['street'],
-            'subdistrict' => $data['address']['subdistrict'],
-            'district' => $data['address']['district'],
-            'city' => $data['address']['city'],
-            'province' => $data['address']['province'],
-        ]);
+        $address = Address::firstOrCreate(
+            [
+                'street' => $data['address']['street'],
+                'district_code' => $data['address']['district_code'],
+                'subdistrict_code' => $data['address']['subdistrict_code'],
+            ]
+        );
 
-        // Associate address_id and created_by
+        // Set the address_id in the patient data
         $data['address_id'] = $address->id;
+
+        // Set created_by and updated_by fields
         $data['created_by'] = Auth::id();
         $data['updated_by'] = Auth::id();
 
-        // Remove address nested array as it's no longer needed
+        // Remove the nested address array as it's no longer needed
         unset($data['address']);
 
         return $data;

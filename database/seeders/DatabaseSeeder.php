@@ -69,6 +69,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DistrictSeeder::class,
             SubdistrictSeeder::class,
+            HealthEventSeeder::class,
             AddressSeeder::class,
             PatientSeeder::class,
             // HouseConditionSeeder::class,

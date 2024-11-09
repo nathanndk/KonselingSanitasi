@@ -7,12 +7,10 @@ use App\Models\Patient;
 use App\Models\District;
 use App\Models\Subdistrict;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Select;
 
 class PatientResource extends Resource
 {
@@ -32,7 +30,7 @@ class PatientResource extends Resource
         return 'Pasien';
     }
 
-    public static function form(Form $form): Form
+    public static function form(Forms\Form $form): Forms\Form
     {
         return $form
             ->schema([
@@ -73,21 +71,25 @@ class PatientResource extends Resource
                     ->schema([
                         Forms\Components\Fieldset::make('Alamat')
                             ->schema([
-                                Select::make('district_code')
+                                Forms\Components\TextInput::make('address.street')
+                                    ->label('Jalan')
+                                    ->required(),
+
+                                Select::make('address.district_code')
                                     ->label('Kecamatan')
                                     ->options(District::pluck('district_name', 'district_code'))
                                     ->searchable()
                                     ->reactive()
                                     ->afterStateUpdated(function ($set) {
-                                        $set('subdistrict_id', null);
+                                        $set('address.subdistrict_code', null);
                                     })
                                     ->required(),
 
-                                Select::make('subdistrict_id')
+                                Select::make('address.subdistrict_code')
                                     ->label('Kelurahan')
                                     ->options(function (callable $get) {
-                                        $districtCode = $get('district_code');
-                                        return $districtCode ? Subdistrict::where('district_code', $districtCode)->pluck('subdistrict_name', 'id') : [];
+                                        $districtCode = $get('address.district_code');
+                                        return $districtCode ? Subdistrict::where('district_code', $districtCode)->pluck('subdistrict_name', 'subdistrict_code') : [];
                                     })
                                     ->searchable()
                                     ->required(),
@@ -99,7 +101,7 @@ class PatientResource extends Resource
             ]);
     }
 
-    public static function table(Table $table): Table
+    public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
@@ -139,9 +141,7 @@ class PatientResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array

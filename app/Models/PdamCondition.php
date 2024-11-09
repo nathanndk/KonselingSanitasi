@@ -27,6 +27,11 @@ class PdamCondition extends Model
         return $this->hasMany(PdamParameterCategory::class, 'pdam_condition_id');
     }
 
+    public function event()
+    {
+        return $this->belongsTo(HealthEvent::class, 'event_id');
+    }
+
     protected static function booted()
     {
         static::creating(function ($model) {

@@ -12,7 +12,7 @@ class Address extends Model
     protected $table = 'address';
 
     protected $fillable = [
-        'street', 'subdistrict', 'district', 'city', 'province'
+        'street', 'district_code', 'subdistrict_code'
     ];
 
     public function healthCenters()

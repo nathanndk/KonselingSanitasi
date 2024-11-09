@@ -17,7 +17,8 @@ class CreateSanitationConditionTable extends Migration
             $table->date('home_visit_date')->nullable();
             $table->string('intervention')->nullable();
             $table->text('notes')->nullable();
-            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('event_id')->nullable()->constrained('health_events')->cascadeOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });

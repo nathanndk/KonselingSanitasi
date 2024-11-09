@@ -26,6 +26,11 @@ class CreateSanitationCondition extends CreateRecord
         $data['created_by'] = Auth::id();
         $data['updated_by'] = Auth::id();
 
+        // Set event_id to null if not provided
+        if (!isset($data['event_id'])) {
+            $data['event_id'] = null;
+        }
+
         return $data;
     }
 }

@@ -10,12 +10,13 @@ class Patient extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nik', 'name', 'date_of_birth', 'gender', 'phone_number', 'address_id', 'created_by', 'updated_by'
+        'nik', 'name', 'date_of_birth', 'gender', 'phone_number', 'address_id',
+        'created_by', 'updated_by', 'event_id', 'sanitation_condition_id', 'district_code', 'cubdistrict_code'
     ];
 
     public function address()
     {
-        return $this->belongsTo(Address::class);
+        return $this->belongsTo(Address::class, 'address_id');
     }
 
     public function creator()
@@ -30,16 +31,21 @@ class Patient extends Model
 
     public function sanitationCondition()
     {
-        return $this->belongsTo(SanitationCondition::class);
+        return $this->belongsTo(SanitationCondition::class, 'sanitation_condition_id');
     }
 
     public function district()
     {
-        return $this->belongsTo(District::class);
+        return $this->belongsTo(District::class, 'district_id');
     }
 
     public function subdistrict()
     {
-        return $this->belongsTo(Subdistrict::class);
+        return $this->belongsTo(Subdistrict::class, 'subdistrict_id');
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(HealthEvent::class, 'event_id');
     }
 }

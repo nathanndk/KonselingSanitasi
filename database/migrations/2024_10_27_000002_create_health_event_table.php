@@ -14,10 +14,11 @@ class CreateHealthEventTable extends Migration
             $table->text('description')->nullable();
             $table->dateTime('start_time');
             $table->dateTime('end_time');
-            $table->dateTime('event_date');
+            $table->date('event_date');
+
             $table->foreignId('created_by')->constrained('users');
-            $table->timestamps();
             $table->foreignId('updated_by')->nullable()->constrained('users');
+            $table->timestamps();
         });
     }
 

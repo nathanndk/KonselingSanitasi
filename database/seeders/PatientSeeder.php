@@ -7,9 +7,6 @@ use App\Models\Patient;
 
 class PatientSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $patients = [
@@ -19,8 +16,9 @@ class PatientSeeder extends Seeder
                 'date_of_birth' => '1985-06-15',
                 'gender' => 'M',
                 'phone_number' => '081234567890',
-                'address_id' => 1, // Pastikan id ini sesuai dengan id di tabel 'address'
-                'created_by' => 1, // Pastikan id ini sesuai dengan id di tabel 'users'
+                'address_id' => 1,
+                'created_by' => 1,
+                'event_id' => 1, // Sesuaikan dengan ID yang ada di tabel health_events
             ],
             [
                 'nik' => '3201020202020002',
@@ -30,6 +28,7 @@ class PatientSeeder extends Seeder
                 'phone_number' => '081234567891',
                 'address_id' => 2,
                 'created_by' => 1,
+                'event_id' => 1,
             ],
             [
                 'nik' => '3201030303030003',
@@ -39,6 +38,7 @@ class PatientSeeder extends Seeder
                 'phone_number' => '081234567892',
                 'address_id' => 3,
                 'created_by' => 1,
+                'event_id' => 1,
             ],
         ];
 

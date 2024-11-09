@@ -11,33 +11,34 @@ class AddressSeeder extends Seeder
     {
         $addresses = [
             [
-                'id' => 1,
                 'street' => 'Jl. Merdeka No.1',
-                'subdistrict_id' => 1,
-                'district_id' => 1,
+                'subdistrict_code' => 'KD01', // Gunakan kode sesuai tabel `subdistrict`
+                'district_code' => 'KC01',     // Gunakan kode sesuai tabel `district`
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 2,
                 'street' => 'Jl. Raya Bogor KM 23',
-                'subdistrict_id' => 2,
-                'district_id' => 2,
+                'subdistrict_code' => 'KD02',
+                'district_code' => 'KC02',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 3,
                 'street' => 'Jl. Raya Serpong No.88',
-                'subdistrict_id' => 3,
-                'district_id' => 3,
+                'subdistrict_code' => 'KD03',
+                'district_code' => 'KC03',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ];
 
         foreach ($addresses as $address) {
-            Address::firstOrCreate(['id' => $address['id']], $address);
+            Address::firstOrCreate([
+                'street' => $address['street'],
+                'subdistrict_code' => $address['subdistrict_code'],
+                'district_code' => $address['district_code'],
+            ], $address);
         }
     }
 }

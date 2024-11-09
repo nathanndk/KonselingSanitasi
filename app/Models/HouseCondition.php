@@ -30,4 +30,9 @@ class HouseCondition extends Model
     {
         return $this->hasMany(HouseParameterValue::class, 'house_condition_id');
     }
+
+    public function event()
+    {
+        return $this->belongsTo(HealthEvent::class, 'event_id');
+    }
 }
