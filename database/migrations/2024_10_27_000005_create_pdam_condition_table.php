@@ -12,7 +12,7 @@ class CreatePdamConditionTable extends Migration
             $table->id();
             $table->foreignId('event_id')->nullable()->constrained('health_events')->cascadeOnDelete();
             $table->text('description')->nullable();
-            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
         });
