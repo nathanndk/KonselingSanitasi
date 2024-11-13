@@ -11,10 +11,8 @@ class CreateHouseParameterCategoriesTable extends Migration
         Schema::create('house_parameter_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-
-            // Relasi ke users untuk created_by dan updated_by
+            $table->foreignId('house_condition_id')->nullable()->constrained('house_conditions');
             $table->foreignId('updated_by')->nullable()->constrained('users');
-
             $table->timestamps();
         });
     }

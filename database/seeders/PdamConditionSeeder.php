@@ -18,7 +18,7 @@ class PdamConditionSeeder extends Seeder
             [
                 'event_id' => null,
                 'description' => 'Tingkat Resiko (R/S/T/ST)',
-                'created_by' => Auth::id(), // Assume user_id 1 exists
+                'created_by' => Auth::id(),
                 'updated_by' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -26,7 +26,7 @@ class PdamConditionSeeder extends Seeder
             [
                 'event_id' => null,
                 'description' => 'Hasil Pengukuran',
-                'created_by' => 2, // Assume user_id 2 exists
+                'created_by' => 2,
                 'updated_by' => null,
                 'created_at' => now(),
                 'updated_at' => now(),

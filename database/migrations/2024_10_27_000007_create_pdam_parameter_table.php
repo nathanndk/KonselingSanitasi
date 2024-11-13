@@ -16,7 +16,6 @@ class CreatePdamParameterTable extends Migration
                   ->on('pdam_parameter_categories')
                   ->onDelete('cascade');
 
-            // $table->foreignId('event_id')->nullable()->constrained('health_events')->onDelete('cascade')->nullable();
             $table->foreignId('condition_id')->nullable()->constrained('pdam_conditions')->onDelete('cascade');
             $table->string('name');
             $table->string('value')->nullable()->default(null);

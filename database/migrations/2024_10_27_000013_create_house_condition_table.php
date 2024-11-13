@@ -14,6 +14,7 @@ class CreateHouseConditionTable extends Migration
             $table->text('description');
             $table->foreignId('event_id')->nullable()->constrained('health_events')->cascadeOnDelete();
             $table->timestamps();
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
         });
     }

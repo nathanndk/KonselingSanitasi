@@ -12,6 +12,7 @@ class CreatePdamParameterCategoriesTable extends Migration
             $table->id();
             $table->string('name');
             $table->timestamps();
+            $table->foreignId('pdam_condition_id')->nullable()->constrained('pdam_conditions');
             $table->foreignId('updated_by')->nullable()->constrained('users');
         });
     }

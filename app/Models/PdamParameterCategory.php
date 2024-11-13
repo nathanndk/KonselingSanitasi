@@ -10,7 +10,7 @@ class PdamParameterCategory extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'created_by', 'updated_by', 'value'
+        'name', 'created_by', 'updated_by', 'value', 'pdam_condition_id'
     ];
 
     public function parameters()

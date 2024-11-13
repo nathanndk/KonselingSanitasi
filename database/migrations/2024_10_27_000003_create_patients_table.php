@@ -17,7 +17,7 @@ class CreatePatientsTable extends Migration
             $table->string('phone_number');
             $table->foreignId('event_id')->nullable()->default(null)->constrained('health_events')->cascadeOnDelete();
             $table->foreignId('address_id')->nullable()->constrained('address');
-            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('created_by')->nullable()->default(null)->constrained('users');
             $table->timestamps();
             $table->foreignId('updated_by')->nullable()->constrained('users');
         });

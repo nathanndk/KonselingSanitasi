@@ -137,6 +137,7 @@ class PDAMParameterResource extends Resource
             ->headerActions([
                 ExportAction::make()
                 ->exporter(PdamConditionExporter::class)
+                ->columnMapping(false),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
@@ -155,7 +156,7 @@ class PDAMParameterResource extends Resource
     {
         return [
             'index' => Pages\ListPDAMParameters::route('/'),
-            'edit' => Pages\EditPDAMParameter::route('/{record}/edit'),
+            // 'edit' => Pages\EditPDAMParameter::route('/{record}/edit'),
         ];
     }
 }
