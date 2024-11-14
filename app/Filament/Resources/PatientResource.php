@@ -71,8 +71,15 @@ class PatientResource extends Resource
                     ->schema([
                         Forms\Components\Fieldset::make('Alamat')
                             ->schema([
-                                Forms\Components\TextInput::make('address.street')
+                                Select::make('health_center_id')
+                                    ->label('Puskesmas')
+                                    ->relationship('healthCenter', 'name')
+                                    ->searchable()
+                                    ->preload(),
+
+                                Forms\Components\Textarea::make('address.street')
                                     ->label('Jalan')
+                                    ->columnSpanFull()
                                     ->required(),
 
                                 Select::make('address.district_code')
@@ -98,6 +105,56 @@ class PatientResource extends Resource
                             ->label('Detail Alamat'),
                     ])
                     ->label('Informasi Alamat'),
+
+                // Card tambahan untuk atribut kesehatan
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\Fieldset::make('Informasi Kesehatan')
+                            ->schema([
+                                Forms\Components\TextInput::make('fasting_blood_sugar')
+                                    ->label('Gula Darah Puasa (mg/dL)')
+                                    ->numeric()
+                                    ->maxLength(5),
+
+                                Forms\Components\TextInput::make('postprandial_blood_sugar')
+                                    ->label('Gula Darah 2 jam PP (mg/dL)')
+                                    ->numeric()
+                                    ->maxLength(5),
+
+                                Forms\Components\TextInput::make('hba1c')
+                                    ->label('HbA1c (%)')
+                                    ->numeric()
+                                    ->maxLength(4),
+
+                                Forms\Components\TextInput::make('blood_sugar')
+                                    ->label('Gula Darah')
+                                    ->numeric()
+                                    ->maxLength(5),
+
+                                Forms\Components\TextInput::make('cholesterol')
+                                    ->label('Kolesterol (mg/dL)')
+                                    ->numeric()
+                                    ->maxLength(5),
+
+                                Forms\Components\TextInput::make('hdl')
+                                    ->label('Lemak Darah HDL (mg/dL)')
+                                    ->numeric()
+                                    ->maxLength(5),
+
+                                Forms\Components\TextInput::make('ldl')
+                                    ->label('Lemak Darah LDL (mg/dL)')
+                                    ->numeric()
+                                    ->maxLength(5),
+
+                                Forms\Components\TextInput::make('triglycerides')
+                                    ->label('Trigliserida (mg/dL)')
+                                    ->numeric()
+                                    ->maxLength(5),
+                            ])
+                            ->columns(2)
+                            ->label('Pemeriksaan Kesehatan'),
+                    ])
+                    ->label('Informasi Kesehatan'),
             ]);
     }
 
@@ -122,17 +179,53 @@ class PatientResource extends Resource
                 TextColumn::make('address.street')
                     ->label('Alamat')
                     ->searchable(),
+
+                // Kolom tambahan untuk atribut kesehatan
+                TextColumn::make('fasting_blood_sugar')
+                    ->label('Gula Darah Puasa (mg/dL)')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('postprandial_blood_sugar')
+                    ->label('Gula Darah 2 jam PP (mg/dL)')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('hba1c')
+                    ->label('HbA1c (%)')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('blood_sugar')
+                    ->label('Gula Darah')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('cholesterol')
+                    ->label('Kolesterol (mg/dL)')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('hdl')
+                    ->label('Lemak Darah HDL (mg/dL)')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('ldl')
+                    ->label('Lemak Darah LDL (mg/dL)')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('triglycerides')
+                    ->label('Trigliserida (mg/dL)')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('created_at')
                     ->label('Tanggal Dibuat')
                     ->dateTime()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
                     ->label('Tanggal Diupdate')
                     ->dateTime()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

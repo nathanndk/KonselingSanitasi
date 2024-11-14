@@ -21,8 +21,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
-use Filament\Tables\Actions\ExportBulkAction;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
 
 class PDAMParameterResource extends Resource
 {
@@ -30,7 +30,7 @@ class PDAMParameterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
 
-    protected static ?string $navigationGroup = 'Master Data';
+    // protected static ?string $navigationGroup = 'Master Data';
 
     public static function getPluralLabel(): string
     {
@@ -104,19 +104,36 @@ class PDAMParameterResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('parameters.categories.name')
+                    TextColumn::make('parameters.categories.name')
                     ->label('Kategori Parameter')
-                    ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state)
+                    ->formatStateUsing(function ($state) {
+                        if (is_array($state)) {
+                            return implode(', ', array_slice($state, 0, 3)) . (count($state) > 3 ? ', ...' : '');
+                        }
+                        return Str::limit($state, 50); // Limit to 50 characters if it's a string
+                    })
                     ->sortable(),
 
-                TextColumn::make('parameters.name')
+                    TextColumn::make('parameters.name')
                     ->label('Parameter')
-                    ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state)
+                    ->formatStateUsing(function ($state) {
+                        if (is_array($state)) {
+                            return implode(', ', array_slice($state, 0, 3)) . (count($state) > 3 ? ', ...' : '');
+                        }
+                        return Str::limit($state, 50); // Limit to 50 characters if it's a string
+                    })
                     ->sortable(),
 
                 TextColumn::make('parameters.value')
                     ->label('Nilai')
+                    ->formatStateUsing(function ($state) {
+                        if (is_array($state)) {
+                            return implode(', ', array_slice($state, 0, 3)) . (count($state) > 3 ? ', ...' : '');
+                        }
+                        return $state ? 'Ya' : 'Tidak'; // You may customize this if needed
+                    })
                     ->sortable(),
+
 
                 TextColumn::make('created_at')
                     ->label('Dibuat Pada')
@@ -132,16 +149,13 @@ class PDAMParameterResource extends Resource
                 // Tambahkan filter jika diperlukan
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
-            ->headerActions([
-                ExportAction::make()
-                ->exporter(PdamConditionExporter::class)
-                ->columnMapping(false),
+                Tables\Actions\EditAction::make()
+                ->label('Isi'),
+                Tables\Actions\ViewAction::make()
+                ->label('Lihat'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-                ExportBulkAction::make()->exporter(PdamConditionExporter::class),
             ]);
     }
 

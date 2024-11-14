@@ -11,17 +11,17 @@ class CreateHealthCenterTable extends Migration
         Schema::create('health_centers', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->string('kc_code'); // district code
-            $table->string('p_code');  // subdistrict code
+            $table->string('district_code', 255); // Menggunakan string sesuai kolom di tabel district
+            $table->string('subdistrict_code', 255); // Menggunakan string sesuai kolom di tabel subdistrict
             $table->timestamps();
 
             // Foreign key constraints
-            $table->foreign('kc_code')
+            $table->foreign('district_code')
                   ->references('district_code')
                   ->on('district')
                   ->onDelete('cascade');
 
-            $table->foreign('p_code')
+            $table->foreign('subdistrict_code')
                   ->references('subdistrict_code')
                   ->on('subdistrict')
                   ->onDelete('cascade');

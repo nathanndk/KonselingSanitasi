@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\SanitationConditionExporter;
 use App\Filament\Resources\SanitationConditionResource\Pages;
 use App\Models\SanitationCondition;
 use Filament\Forms;
@@ -17,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Fieldset;
+use Filament\Tables\Actions\ExportAction;
 
 class SanitationConditionResource extends Resource
 {
@@ -225,6 +227,10 @@ class SanitationConditionResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(SanitationConditionExporter::class)
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

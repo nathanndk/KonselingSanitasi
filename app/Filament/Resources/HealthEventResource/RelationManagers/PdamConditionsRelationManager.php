@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\HealthEventResource\RelationManagers;
 
+use App\Models\PdamCondition;
 use Filament\Forms;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -24,54 +26,61 @@ class PdamConditionsRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         return $form
-        ->schema([
-            Card::make()
-                ->schema([
-                    TextInput::make('description')
-                        ->label('Deskripsi Kondisi')
-                        ->placeholder('Masukkan deskripsi kondisi...')
-                        ->required(),
-                ])
-                ->columnSpan('full')
-                ->columns(1),
+            ->schema([
+                Section::make('Data PDAM')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema(
+                                PdamCondition::all()->map(function ($condition) {
+                                    $cards = [];
 
-            Section::make('Detail Parameter')
-                ->schema([
-                    Repeater::make('parameters')
-                        ->relationship('parameters')
-                        ->label('Parameter')
-                        ->schema([
-                            Grid::make(2)
-                                ->schema([
-                                    Select::make('parameter_category_id')
-                                        ->label('Kategori Parameter')
-                                        ->relationship('categories', 'name')
-                                        ->nullable()
-                                        ->preload()
-                                        ->createOptionForm([
-                                            TextInput::make('name')
-                                                ->label('Nama Kategori')
-                                                ->required(),
-                                        ])
-                                        ->placeholder('Pilih kategori parameter...'),
+                                    $cards[] = Card::make([
+                                        Placeholder::make('condition_placeholder')
+                                            ->label('Kondisi: ' . $condition->description)
+                                            ->columnSpanFull(),
 
-                                    TextInput::make('name')
-                                        ->label('Nama Parameter')
-                                        ->required()
-                                        ->placeholder('Masukkan nama parameter...'),
+                                        Grid::make(1)
+                                            ->schema(
+                                                $condition->categories->map(function ($category) {
+                                                    return Card::make([
+                                                        Placeholder::make('category_placeholder')
+                                                            ->label('Kategori: ' . $category->name)
+                                                            ->columnSpanFull(),
 
-                                    TextInput::make('value')
-                                        ->label('Nilai Parameter')
-                                        ->placeholder('Masukkan nilai parameter...'),
-                                ]),
-                        ])
-                        ->minItems(1)
-                        ->createItemButtonLabel('Tambah Parameter')
-                        ->columns(1),
-                ])
-                ->columnSpan('full'),
-        ])
-        ->columns(1);
+                                                        Grid::make(2)
+                                                            ->schema(
+                                                                $category->parameters->map(function ($parameter) {
+                                                                    return TextInput::make("value_{$parameter->id}")
+                                                                        ->label($parameter->name)
+                                                                        ->rules(['nullable', 'string'])
+                                                                        ->default($parameter->value);
+                                                                })->toArray()
+                                                            )
+                                                            ->columnSpanFull(),
+                                                    ])->columnSpan(2);
+                                                })->toArray()
+                                            )
+                                            ->columnSpanFull(),
+
+                                        Grid::make(1)
+                                            ->schema(
+                                                $condition->parameters->filter(function ($parameter) {
+                                                    return is_null($parameter->parameter_category_id);
+                                                })->map(function ($parameter) {
+                                                    return TextInput::make("value_{$parameter->id}")
+                                                        ->label($parameter->name)
+                                                        ->rules(['nullable', 'string'])
+                                                        ->default($parameter->value);
+                                                })->toArray()
+                                            )
+                                            ->columnSpanFull(),
+                                    ])->columnSpan(2);
+
+                                    return $cards;
+                                })->flatten()->filter()->toArray()
+                            ),
+                    ])->collapsible(),
+            ]);
     }
 
     public function table(Table $table): Table

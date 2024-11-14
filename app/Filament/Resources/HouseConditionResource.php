@@ -17,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class HouseConditionResource extends Resource
 {
@@ -24,7 +25,7 @@ class HouseConditionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Master Data';
+    // protected static ?string $navigationGroup = 'Master Data';
 
     public static function getPluralLabel(): string
     {
@@ -113,19 +114,34 @@ class HouseConditionResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('parameters.categories.name')
+                    TextColumn::make('parameters.categories.name')
                     ->label('Kategori Parameter')
-                    ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state)
+                    ->formatStateUsing(function ($state) {
+                        if (is_array($state)) {
+                            return implode(', ', array_slice($state, 0, 3)) . (count($state) > 3 ? ', ...' : '');
+                        }
+                        return Str::limit($state, 50); // Limit to 50 characters if it's a string
+                    })
                     ->sortable(),
 
-                TextColumn::make('parameters.name')
+                    TextColumn::make('parameters.name')
                     ->label('Parameter')
-                    ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state)
+                    ->formatStateUsing(function ($state) {
+                        if (is_array($state)) {
+                            return implode(', ', array_slice($state, 0, 3)) . (count($state) > 3 ? ', ...' : '');
+                        }
+                        return Str::limit($state, 50); // Limit to 50 characters if it's a string
+                    })
                     ->sortable(),
 
                 TextColumn::make('parameters.value')
                     ->label('Nilai')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak')
+                    ->formatStateUsing(function ($state) {
+                        if (is_array($state)) {
+                            return implode(', ', array_slice($state, 0, 3)) . (count($state) > 3 ? ', ...' : '');
+                        }
+                        return $state ? 'Ya' : 'Tidak'; // You may customize this if needed
+                    })
                     ->sortable(),
 
 
@@ -143,8 +159,10 @@ class HouseConditionResource extends Resource
                 // Tambahkan filter jika diperlukan
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make()
+                ->label('Isi'),
+                Tables\Actions\ViewAction::make()
+                ->label('Isi'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

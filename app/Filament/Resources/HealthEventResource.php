@@ -5,9 +5,12 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\HealthEventResource\Pages;
 use App\Filament\Resources\HealthEventResource\RelationManagers\CounselingReportsRelationManager;
 use App\Filament\Resources\HealthEventResource\RelationManagers\HouseConditionsRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\HousingSurveyRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\PatientRelationManager;
 use App\Filament\Resources\HealthEventResource\RelationManagers\PatientsRelationManager;
 use App\Filament\Resources\HealthEventResource\RelationManagers\PdamConditionsRelationManager;
 use App\Filament\Resources\HealthEventResource\RelationManagers\PdamParametersRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\PdamRelationManager;
 use App\Models\HealthEvent;
 use App\Models\Patient;
 use Filament\Forms;
@@ -55,6 +58,7 @@ class HealthEventResource extends Resource
                                 TextInput::make('title')
                                     ->label('Judul Acara')
                                     ->required()
+                                    ->columnSpanFull()
                                     ->maxLength(255),
 
                                 Textarea::make('description')
@@ -67,8 +71,7 @@ class HealthEventResource extends Resource
                                     ->label('Tanggal Acara')
                                     ->required()
                                     ->minDate(today())
-                                    ->rule('date')
-                                    ->columnSpanFull(),
+                                    ->rule('date'),
 
                                 DateTimePicker::make('start_time')
                                     ->label('Waktu Mulai')
@@ -89,7 +92,7 @@ class HealthEventResource extends Resource
                                     ->reactive()
                                     ->helperText('Waktu selesai harus setelah waktu mulai, tidak harus pada hari yang sama'),
                             ])
-                            ->columns(2),
+                            ->columns(3),
                     ])
             ]);
     }
@@ -187,7 +190,8 @@ class HealthEventResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                ->label('Isi'),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -199,10 +203,10 @@ class HealthEventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            PatientsRelationManager::class,
-            HouseConditionsRelationManager::class,
-            PdamConditionsRelationManager::class,
+            // PatientRelationManager::class,
             CounselingReportsRelationManager::class,
+            HousingSurveyRelationManager::class,
+            PdamRelationManager::class,
         ];
     }
 
@@ -210,7 +214,7 @@ class HealthEventResource extends Resource
     {
         return [
             'index' => Pages\ListHealthEvents::route('/'),
-            'create' => Pages\CreateHealthEvent::route('/create'),
+            // 'create' => Pages\CreateHealthEvent::route('/create'),
             'edit' => Pages\EditHealthEvent::route('/{record}/edit'),
         ];
     }

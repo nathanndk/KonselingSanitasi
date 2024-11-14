@@ -7,6 +7,7 @@ use Filament\Forms\Components\Card;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -37,33 +38,93 @@ class CounselingReportsRelationManager extends RelationManager
                                     ->searchable()
                                     ->relationship('patient', 'name')
                                     ->required()
-                                    ->preload(),
+                                    ->preload()
+                                    ->createOptionForm([
+                                        TextInput::make('nik')
+                                            ->label('NIK')
+                                            ->required()
+                                            ->unique('patients', 'nik')
+                                            ->maxLength(16),
+
+                                        TextInput::make('name')
+                                            ->label('Nama')
+                                            ->required(),
+
+                                        DatePicker::make('date_of_birth')
+                                            ->label('Tanggal Lahir')
+                                            ->required(),
+
+                                        Select::make('gender')
+                                            ->label('Jenis Kelamin')
+                                            ->options([
+                                                'L' => 'Laki-Laki',
+                                                'P' => 'Perempuan',
+                                            ])
+                                            ->required(),
+
+                                        TextInput::make('phone_number')
+                                            ->label('Nomor Telepon')
+                                            ->required(),
+
+                                        // Select::make('event_id')
+                                        //     ->label('Event Kesehatan')
+                                        //     ->relationship('event', 'name')
+                                        //     ->nullable(),
+
+                                        // Select::make('address_id')
+                                        //     ->label('Alamat')
+                                        //     ->relationship('address', 'full_address')
+                                        //     ->nullable(),
+
+                                        TextInput::make('created_by')
+                                            ->default(fn() => Auth::id())
+                                            ->hidden(),
+
+                                        TextInput::make('updated_by')
+                                            ->default(fn() => Auth::id())
+                                            ->hidden(),
+                                    ]),
                             ])
                             ->columns(2),
 
                         Fieldset::make('Detail Konseling')
                             ->schema([
-                                TextInput::make('condition')
-                                    ->label('Kondisi/Masalah')
-                                    ->required(),
-
-                                TextInput::make('recommendation')
-                                    ->label('Saran/Rekomendasi')
-                                    ->required(),
-
                                 DatePicker::make('home_visit_date')
                                     ->label('Tanggal Kunjungan Rumah')
+                                    ->columnSpanFull()
                                     ->nullable(),
 
-                                TextInput::make('intervention')
+                                Textarea::make('condition')
+                                    ->label('Kondisi/Masalah')
+                                    ->rows(3)
+                                    ->required(),
+
+                                Textarea::make('recommendation')
+                                    ->label('Saran/Rekomendasi')
+                                    ->rows(3)
+                                    ->required(),
+
+                                Textarea::make('intervention')
                                     ->label('Intervensi')
+                                    ->rows(3)
+
                                     ->nullable(),
 
-                                TextInput::make('notes')
+                                Textarea::make('notes')
                                     ->label('Keterangan')
+                                    ->rows(3)
                                     ->nullable(),
                             ])
                             ->columns(2),
+
+                        // Field untuk 'created_by' dan 'updated_by' yang disembunyikan
+                        TextInput::make('created_by')
+                            ->default(fn() => Auth::id())
+                            ->hidden(),
+
+                        TextInput::make('updated_by')
+                            ->default(fn() => Auth::id())
+                            ->hidden(),
                     ])
                     ->columns(1),
             ]);
@@ -87,6 +148,7 @@ class CounselingReportsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
+
                 TextColumn::make('counseling_date')
                     ->label('Tanggal Pelaksanaan Konseling')
                     ->date()
@@ -96,13 +158,6 @@ class CounselingReportsRelationManager extends RelationManager
                     ->label('Nama Pasien')
                     ->searchable()
                     ->sortable(),
-
-                TextColumn::make('condition')
-                    ->label('Kondisi/Masalah'),
-
-                TextColumn::make('recommendation')
-                    ->label('Saran/Rekomendasi'),
-
                 TextColumn::make('patient.address.street')
                     ->label('Jalan')
                     ->searchable()
@@ -117,6 +172,12 @@ class CounselingReportsRelationManager extends RelationManager
                     ->label('Kecamatan')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('condition')
+                    ->label('Kondisi/Masalah'),
+
+                TextColumn::make('recommendation')
+                    ->label('Saran/Rekomendasi'),
 
                 TextColumn::make('home_visit_date')
                     ->label('Tanggal Kunjungan Rumah')
@@ -137,20 +198,20 @@ class CounselingReportsRelationManager extends RelationManager
                     ->formatStateUsing(fn($state) => $state ? 'User ID ' . $state : null)
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('updated_by')
-                    ->label('Diperbarui Oleh')
-                    ->formatStateUsing(fn($state) => $state ? 'User ID ' . $state : null)
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('updated_by')
+                //     ->label('Diperbarui Oleh')
+                //     ->formatStateUsing(fn($state) => $state ? 'User ID ' . $state : null)
+                //     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('created_at')
-                    ->label('Dibuat Pada')
-                    ->dateTime()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('created_at')
+                //     ->label('Dibuat Pada')
+                //     ->dateTime()
+                //     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('updated_at')
-                    ->label('Diupdate Pada')
-                    ->dateTime()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // TextColumn::make('updated_at')
+                //     ->label('Diupdate Pada')
+                //     ->dateTime()
+                //     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([])
             ->headerActions([

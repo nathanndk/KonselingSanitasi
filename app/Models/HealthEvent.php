@@ -28,7 +28,7 @@ class HealthEvent extends Model
         return $this->hasMany(EventStatus::class, 'event_id');
     }
 
-    public function patients()
+    public function patient()
     {
         return $this->belongsToMany(Patient::class, 'event_id');
     }
@@ -51,6 +51,15 @@ class HealthEvent extends Model
     public function houseConditions()
     {
         return $this->hasMany(HouseCondition::class, 'event_id');
+    }
+
+    public function Pdam(){
+        return $this->hasMany(PDAM::class, 'event_id');
+    }
+
+    public function HousingSurvey(){
+        return $this->hasMany(HousingSurvey::class, 'event_id');
+
     }
 
 }

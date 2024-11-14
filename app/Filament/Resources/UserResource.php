@@ -37,7 +37,7 @@ class UserResource extends Resource
                         Grid::make(2)->schema([
                             TextInput::make('username')
                                 ->required()
-                                ->unique()
+                                ->unique(ignorable: fn ($record) => $record)
                                 ->maxLength(255)
                                 ->label('Username'),
 
@@ -49,8 +49,7 @@ class UserResource extends Resource
                             TextInput::make('nik')
                                 ->label('NIK')
                                 ->maxLength(16)
-                                ->unique()
-                                ->required(),
+                                ->unique(),
 
                             TextInput::make('email')
                                 ->email()
@@ -59,8 +58,7 @@ class UserResource extends Resource
                                 ->label('Email'),
 
                             DatePicker::make('date_of_birth')
-                                ->label('Tanggal Lahir')
-                                ->required(),
+                                ->label('Tanggal Lahir'),
                         ]),
                     ])->collapsible(),
 
@@ -136,7 +134,7 @@ class UserResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('health_center_id')
+                Tables\Columns\TextColumn::make('healthCenter.name')
                     ->label('Puskesmas')
                     ->sortable()
                     ->toggleable(),

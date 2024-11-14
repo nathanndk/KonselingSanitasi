@@ -16,7 +16,7 @@ class CreateHealthEventTable extends Migration
             $table->dateTime('end_time');
             $table->date('event_date');
 
-            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->timestamps();
         });

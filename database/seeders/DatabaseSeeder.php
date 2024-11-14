@@ -17,10 +17,26 @@ class DatabaseSeeder extends Seeder
     {
         // Define permissions with capitalized words
         $permissions = [
-            'View Posts',
-            'Create Posts',
-            'Edit Posts',
-            'Delete Posts',
+            'View PDAM',
+            'Create PDAM',
+            'Edit PDAM',
+            'Delete PDAM',
+            'View Konseling Sanitasi',
+            'Create Konseling Sanitasi',
+            'Edit Konseling Sanitasi',
+            'Delete Konseling Sanitasi',
+            'View Rumah Sehat',
+            'Create Rumah Sehat',
+            'Edit Rumah Sehat',
+            'Delete Rumah Sehat',
+            'View Pasien',
+            'Create Pasien',
+            'Edit Pasien',
+            'Delete Pasien',
+            'View Jadwal Acara',
+            'Create Jadwal Acara',
+            'Edit Jadwal Acara',
+            'Delete Jadwal Acara',
             'View Users',
             'Create Users',
             'Edit Users',
@@ -34,11 +50,44 @@ class DatabaseSeeder extends Seeder
 
         // Define roles and assign permissions
         $rolesPermissions = [
-            'Admin' => ['View Posts', 'Create Posts', 'Edit Posts', 'Delete Posts', 'View Users', 'Create Users', 'Edit Users', 'Delete Users'],
-            'Kader' => ['View Posts', 'Create Posts'],
-            'Petugas' => ['View Posts'],
-            'Puskesmas' => ['View Posts'],
-            'Dinas Kesehatan' => ['View Posts'],
+            'Admin' => [
+                'View PDAM', 'Create PDAM', 'Edit PDAM', 'Delete PDAM',
+                'View Konseling Sanitasi', 'Create Konseling Sanitasi', 'Edit Konseling Sanitasi', 'Delete Konseling Sanitasi',
+                'View Rumah Sehat', 'Create Rumah Sehat', 'Edit Rumah Sehat', 'Delete Rumah Sehat',
+                'View Pasien', 'Create Pasien', 'Edit Pasien', 'Delete Pasien',
+                'View Jadwal Acara', 'Create Jadwal Acara', 'Edit Jadwal Acara', 'Delete Jadwal Acara',
+                'View Users', 'Create Users', 'Edit Users', 'Delete Users'
+            ],
+            'Kader' => [
+                'View PDAM', 'Create PDAM', 'Edit PDAM', 'Delete PDAM',
+                'View Konseling Sanitasi', 'Create Konseling Sanitasi', 'Edit Konseling Sanitasi', 'Delete Konseling Sanitasi',
+                'View Rumah Sehat', 'Edit Rumah Sehat', 'Delete Rumah Sehat',
+                'View Jadwal Acara','Edit Jadwal Acara',
+                'View Pasien', 'Create Pasien', 'Edit Pasien', 'Delete Pasien',
+            ],
+            'Petugas' => [
+                'View PDAM', 'Create PDAM', 'Edit PDAM', 'Delete PDAM',
+                'View Konseling Sanitasi', 'Create Konseling Sanitasi', 'Edit Konseling Sanitasi', 'Delete Konseling Sanitasi',
+                'View Rumah Sehat', 'Create Rumah Sehat', 'Edit Rumah Sehat', 'Delete Rumah Sehat',
+                'View Jadwal Acara','Edit Jadwal Acara',
+                'View Pasien', 'Create Pasien', 'Edit Pasien', 'Delete Pasien',
+            ],
+            'Puskesmas' => [
+                'View PDAM', 'Create PDAM', 'Edit PDAM', 'Delete PDAM',
+                'View Konseling Sanitasi', 'Create Konseling Sanitasi', 'Edit Konseling Sanitasi', 'Delete Konseling Sanitasi',
+                'View Rumah Sehat', 'Create Rumah Sehat', 'Edit Rumah Sehat', 'Delete Rumah Sehat',
+                'View Pasien', 'Create Pasien', 'Edit Pasien', 'Delete Pasien',
+                'View Jadwal Acara', 'Create Jadwal Acara', 'Edit Jadwal Acara', 'Delete Jadwal Acara',
+                'View Users', 'Create Users', 'Edit Users', 'Delete Users'
+            ],
+            'Dinas Kesehatan' => [
+                'View PDAM', 'Create PDAM', 'Edit PDAM', 'Delete PDAM',
+                'View Konseling Sanitasi', 'Create Konseling Sanitasi', 'Edit Konseling Sanitasi', 'Delete Konseling Sanitasi',
+                'View Rumah Sehat', 'Create Rumah Sehat', 'Edit Rumah Sehat', 'Delete Rumah Sehat',
+                'View Pasien', 'Create Pasien', 'Edit Pasien', 'Delete Pasien',
+                'View Jadwal Acara', 'Create Jadwal Acara', 'Edit Jadwal Acara', 'Delete Jadwal Acara',
+                'View Users', 'Create Users', 'Edit Users', 'Delete Users'
+            ],
         ];
 
         foreach ($rolesPermissions as $roleName => $permissions) {
@@ -48,7 +97,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed users with roles
         $adminUser = User::factory()->create([
-            'username' => 'admin_user',
+            'username' => 'admin',
             'name' => 'Admin',
             'email' => 'admin@admin.com',
             'password' => bcrypt('password'),
@@ -60,16 +109,16 @@ class DatabaseSeeder extends Seeder
         $adminUser->assignRole('Admin');
 
         // Create additional users for each role
-        $this->createUserWithRole('Kader', 'kader@user.com', 'kader_user', RoleUser::Kader->value);
-        $this->createUserWithRole('Petugas', 'petugas@user.com', 'petugas_user', RoleUser::Petugas->value);
-        $this->createUserWithRole('Puskesmas', 'puskesmas@user.com', 'puskesmas_user', RoleUser::Puskesmas->value);
-        $this->createUserWithRole('Dinas Kesehatan', 'dinkes@user.com', 'dinkes_user', RoleUser::DinasKesehatan->value);
+        $this->createUserWithRole('Kader', 'kader@user.com', 'kader', RoleUser::Kader->value);
+        $this->createUserWithRole('Petugas', 'petugas@user.com', 'petugas', RoleUser::Petugas->value);
+        $this->createUserWithRole('Puskesmas', 'puskesmas@user.com', 'puskesmas', RoleUser::Puskesmas->value);
+        $this->createUserWithRole('Dinas Kesehatan', 'dinkes@user.com', 'dinkes', RoleUser::DinasKesehatan->value);
 
         // Call additional seeders
         $this->call([
             DistrictSeeder::class,
             SubdistrictSeeder::class,
-            HealthEventSeeder::class,
+            // HealthEventSeeder::class,
             AddressSeeder::class,
             PdamConditionSeeder::class,
             PdamParameterCategorySeeder::class,
@@ -77,9 +126,11 @@ class DatabaseSeeder extends Seeder
             HouseConditionSeeder::class,
             HouseParameterCategorySeeder::class,
             HouseParameterSeeder::class,
+            HealthCenterSeeder::class,
+            HealthCenterUserSeeder::class,
             PatientSeeder::class,
             SanitationConditionSeeder::class,
-            HealthCenterSeeder::class,
+
         ]);
 
         $this->command->info('Database seeding selesai.');

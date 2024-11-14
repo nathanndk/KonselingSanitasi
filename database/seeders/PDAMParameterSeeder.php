@@ -17,6 +17,8 @@ class PDAMParameterSeeder extends Seeder
 
         // Define parameters for each category with corresponding condition_id
         $parameters = [
+            ['name' => 'Tingkat Risiko', 'condition_id' => 1],
+
             // Parameters with condition_id 2 and no category (parameter_category_id is null)
             ['name' => 'Sisa Chlor', 'condition_id' => 2],
             ['name' => 'pH', 'condition_id' => 2],
@@ -47,6 +49,9 @@ class PDAMParameterSeeder extends Seeder
             ['parameter_category_id' => $chemistryCategory->id, 'name' => 'Nitrit', 'condition_id' => 3],
             ['parameter_category_id' => $chemistryCategory->id, 'name' => 'Nitrat', 'condition_id' => 3],
             ['parameter_category_id' => $chemistryCategory->id, 'name' => 'pH', 'condition_id' => 3],
+
+            ['name' => 'Keterangan', 'condition_id' => 4],
+
         ];
 
         foreach ($parameters as $parameter) {

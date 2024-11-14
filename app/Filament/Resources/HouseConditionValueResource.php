@@ -20,7 +20,7 @@ class HouseConditionValueResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Laporan';
+    // protected static ?string $navigationGroup = 'Laporan';
 
     public static function getPluralLabel(): string
     {

@@ -10,8 +10,19 @@ class Patient extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nik', 'name', 'date_of_birth', 'gender', 'phone_number', 'address_id',
-        'created_by', 'updated_by', 'event_id', 'sanitation_condition_id', 'district_code', 'cubdistrict_code'
+        'nik',
+        'name',
+        'date_of_birth',
+        'gender',
+        'phone_number',
+        'address_id',
+        'created_by',
+        'updated_by',
+        'event_id',
+        'sanitation_condition_id',
+        'district_code',
+        'cubdistrict_code',
+        'health_center_id'
     ];
 
     public function address()
@@ -47,5 +58,10 @@ class Patient extends Model
     public function event()
     {
         return $this->belongsTo(HealthEvent::class, 'event_id');
+    }
+
+    public function healthCenter()
+    {
+        return $this->belongsTo(HealthCenter::class,'health_center_id');
     }
 }

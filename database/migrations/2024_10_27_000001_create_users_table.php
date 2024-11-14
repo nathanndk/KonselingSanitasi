@@ -21,10 +21,10 @@ class CreateUsersTable extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', array_map(fn($role) => $role->value, RoleUser::cases()))->default(RoleUser::Kader->value);
-            $table->string('nik');
-            $table->date('date_of_birth');
+            $table->string('nik')->nullable();
+            $table->date('date_of_birth')->nullable();
             $table->string('profile_pic')->nullable();
-            $table->string('gender');
+            $table->string('gender')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
