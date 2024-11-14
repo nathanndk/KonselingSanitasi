@@ -2,9 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\HouseOwnership;
-use App\Enums\JobType;
-use App\Enums\WaterSource;
+
 use App\Filament\Exports\HousingSurveyExporter;
 use App\Filament\Resources\HouseResource\Pages;
 use App\Models\HousingSurvey;
@@ -57,7 +55,8 @@ class HouseResource extends Resource
                                 TextInput::make('nik')
                                     ->label('NIK')
                                     ->unique('patients', 'nik')
-                                    ->maxLength(16),
+                                    ->maxLength(16)
+                                    ->minLength(16),
 
                                 TextInput::make('name')
                                     ->label('Nama'),
@@ -86,44 +85,52 @@ class HouseResource extends Resource
 
                         Forms\Components\TextInput::make('diagnosed_disease')
                             ->label('Penyakit yang Didiagnosis')
-                            ->placeholder('Tulis nama penyakitnya jika ada'),
+                            ->placeholder('Tulis nama penyakitnya jika ada')
+                            ->maxLength(100),
 
                         Forms\Components\TextInput::make('head_of_family')
-                            ->label('Nama Kepala Keluarga'),
+                            ->label('Nama Kepala Keluarga')
+                            ->maxLength(50),
 
                         Forms\Components\Select::make('drinking_water_source')
                             ->label('Sumber Air Minum')
                             ->options([
-                                WaterSource::SUMUR->value => 'Sumur',
-                                WaterSource::PDAM->value => 'PDAM',
-                                WaterSource::AIR_HUJAN->value => 'Air Hujan',
-                                WaterSource::LAINNYA->value => 'Lainnya',
+                                'ISI_ULANG' => 'Isi Ulang',
+                                'AMDK' => 'Air Minum Dalam Kemasan',
+                                'SGL' => 'Sumur Gali',
+                                'ARTERTIS' => 'Air Tanah',
+                                'MATA_AIR' => 'Mata Air'
                             ]),
 
                         Forms\Components\Select::make('clean_water_source')
                             ->label('Sumber Air Bersih')
                             ->options([
-                                WaterSource::SUMUR->value => 'Sumur',
-                                WaterSource::PDAM->value => 'PDAM',
-                                WaterSource::AIR_HUJAN->value => 'Air Hujan',
-                                WaterSource::LAINNYA->value => 'Lainnya',
+                                'ISI_ULANG' => 'Isi Ulang',
+                                'AMDK' => 'Air Minum Dalam Kemasan',
+                                'SGL' => 'Sumur Gali',
+                                'ARTERTIS' => 'Air Tanah',
+                                'MATA_AIR' => 'Mata Air'
                             ]),
 
-                        Forms\Components\TextInput::make('last_education')
+                        Forms\Components\Select::make('last_education')
                             ->label('Pendidikan Terakhir Kepala Keluarga')
-                            ->placeholder('Misalnya: SD, SMP, SMA'),
-
-                        Forms\Components\Select::make('job')
-                            ->label('Pekerjaan Kepala Keluarga')
+                            ->placeholder('Misalnya: SD, SMP, SMA')
                             ->options([
-                                JobType::PETANI->value => 'Petani',
-                                JobType::PNS->value => 'PNS',
-                                JobType::TNIPOLRI->value => 'TNI/POLRI',
-                                JobType::PEDAGANG->value => 'Pedagang',
-                                JobType::BURUH->value => 'Buruh',
-                                JobType::WIRASWASTA->value => 'Wiraswasta',
-                                JobType::SUPIR->value => 'Supir',
+                                'tidak_sekolah' => 'Tidak Sekolah',
+                                'SD' => 'SD',
+                                'SMP' => 'SMP',
+                                'SMA' => 'SMA',
+                                'DIII' => 'DIII',
+                                'DIV' => 'DIV',
+                                'S1' => 'S1',
+                                'S2' => 'S2',
+                                'S3' => 'S3'
+
                             ]),
+
+                        Forms\Components\TextInput::make('job')
+                            ->label('Pekerjaan Kepala Keluarga')
+                            ,
 
                         Forms\Components\TextInput::make('family_members')
                             ->label('Jumlah Jiwa dalam KK')
@@ -132,10 +139,8 @@ class HouseResource extends Resource
                         Forms\Components\Select::make('house_ownership')
                             ->label('Status Kepemilikan Rumah')
                             ->options([
-                                HouseOwnership::SENDIRI->value => 'Rumah Sendiri',
-                                HouseOwnership::ORANGTUA->value => 'Rumah Orangtua',
-                                HouseOwnership::DINAS->value => 'Rumah Dinas',
-                                HouseOwnership::KONTRAK->value => 'Rumah Kontrak',
+                                'rumah_sendiri' => 'Rumah Sendiri',
+                                'kontrak' => 'Rumah Kontrak',
                             ]),
 
                         Forms\Components\TextInput::make('house_area')
@@ -230,15 +235,15 @@ class HouseResource extends Resource
                                     ->label('Kondisi dalam keadaan bersih')
                                     ->options([true => 'Ya', false => 'Tidak']),
 
-                                Forms\Components\Radio::make('bedroom_lighting_60_lux')
+                                Forms\Components\Radio::make('bedroom_lighting')
                                     ->label('Pencahayaan yang diperlukan sesuai aktivitas dalam kamar (>60 LUX)')
                                     ->options([true => 'Ya', false => 'Tidak']),
 
-                                Forms\Components\Radio::make('bedroom_area_minimum_9m2')
+                                Forms\Components\Radio::make('bedroom_area_minimum')
                                     ->label('Luas ruang tidur minimum 9 m²')
                                     ->options([true => 'Ya', false => 'Tidak']),
 
-                                Forms\Components\Radio::make('ceiling_height_minimum_2.4m')
+                                Forms\Components\Radio::make('ceiling_height_minimum')
                                     ->label('Tinggi langit-langit minimum 2,4 m')
                                     ->options([true => 'Ya', false => 'Tidak']),
                             ])
@@ -374,40 +379,54 @@ class HouseResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('drinking_water_source')
+                    Tables\Columns\TextColumn::make('drinking_water_source')
                     ->label('Sumber Air Minum')
                     ->formatStateUsing(fn($state) => match ($state) {
-                        WaterSource::SUMUR->value => 'Sumur',
-                        WaterSource::PDAM->value => 'PDAM',
-                        WaterSource::AIR_HUJAN->value => 'Air Hujan',
-                        WaterSource::LAINNYA->value => 'Lainnya',
+                        'SUMUR' => 'Sumur',
+                        'PDAM' => 'PDAM',
+                        'AIR_HUJAN' => 'Air Hujan',
+                        'MATA_AIR' => 'Mata Air',
+                        'ISI_ULANG' => 'Isi Ulang',
                         default => $state,
                     }),
 
                 Tables\Columns\TextColumn::make('clean_water_source')
                     ->label('Sumber Air Bersih')
                     ->formatStateUsing(fn($state) => match ($state) {
-                        WaterSource::SUMUR->value => 'Sumur',
-                        WaterSource::PDAM->value => 'PDAM',
-                        WaterSource::AIR_HUJAN->value => 'Air Hujan',
-                        WaterSource::LAINNYA->value => 'Lainnya',
+                        'SUMUR' => 'Sumur',
+                        'PDAM' => 'PDAM',
+                        'AIR_HUJAN' => 'Air Hujan',
+                        'MATA_AIR' => 'Mata Air',
+                        'ISI_ULANG' => 'Isi Ulang',
                         default => $state,
                     }),
 
                 Tables\Columns\TextColumn::make('last_education')
                     ->label('Pendidikan Terakhir Kepala Keluarga')
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'tidak_sekolah' => 'Tidak Sekolah',
+                        'SD' => 'SD',
+                        'SMP' => 'SMP',
+                        'SMA' => 'SMA',
+                        'DIII' => 'DIII',
+                        'DIV' => 'DIV',
+                        'S1' => 'S1',
+                        'S2' => 'S2',
+                        'S3' => 'S3',
+                        default => $state,
+                    })
                     ->limit(20),
 
                 Tables\Columns\TextColumn::make('job')
                     ->label('Pekerjaan Kepala Keluarga')
                     ->formatStateUsing(fn($state) => match ($state) {
-                        JobType::PETANI->value => 'Petani',
-                        JobType::PNS->value => 'PNS',
-                        JobType::TNIPOLRI->value => 'TNI/POLRI',
-                        JobType::PEDAGANG->value => 'Pedagang',
-                        JobType::BURUH->value => 'Buruh',
-                        JobType::WIRASWASTA->value => 'Wiraswasta',
-                        JobType::SUPIR->value => 'Supir',
+                        'PETANI' => 'Petani',
+                        'PNS' => 'PNS',
+                        'TNIPOLRI' => 'TNI/POLRI',
+                        'PEDAGANG' => 'Pedagang',
+                        'BURUH' => 'Buruh',
+                        'WIRASWASTA' => 'Wiraswasta',
+                        'SUPIR' => 'Supir',
                         default => $state,
                     }),
 
@@ -418,12 +437,11 @@ class HouseResource extends Resource
                 Tables\Columns\TextColumn::make('house_ownership')
                     ->label('Status Kepemilikan Rumah')
                     ->formatStateUsing(fn($state) => match ($state) {
-                        HouseOwnership::SENDIRI->value => 'Rumah Sendiri',
-                        HouseOwnership::ORANGTUA->value => 'Rumah Orangtua',
-                        HouseOwnership::DINAS->value => 'Rumah Dinas',
-                        HouseOwnership::KONTRAK->value => 'Rumah Kontrak',
+                        'rumah_sendiri' => 'Rumah Sendiri',
+                        'kontrak' => 'Rumah Kontrak',
                         default => $state,
                     }),
+
 
                 Tables\Columns\TextColumn::make('house_area')
                     ->label('Luas Rumah (m²)')

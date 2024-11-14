@@ -21,127 +21,107 @@ class CounselingReportsRelationManager extends RelationManager
     protected static string $relationship = 'counselingReports';
 
     public function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                Card::make()
-                    ->schema([
-                        Fieldset::make('Informasi Konseling')
-                            ->schema([
-                                DatePicker::make('counseling_date')
-                                    ->label('Tanggal Pelaksanaan Konseling')
-                                    ->required()
-                                    ->default(now()),
+{
+    return $form
+        ->schema([
+            Card::make()
+                ->schema([
+                    Fieldset::make('Informasi Konseling')
+                        ->schema([
+                            DatePicker::make('counseling_date')
+                                ->label('Tanggal Pelaksanaan Konseling')
+                                ->required()
+                                ->default(now())
+                                ->helperText('Pilih tanggal pelaksanaan konseling.'),
 
-                                Select::make('patient_id')
-                                    ->label('Nama Pasien')
-                                    ->searchable()
-                                    ->relationship('patient', 'name')
-                                    ->required()
-                                    ->preload()
-                                    ->createOptionForm([
-                                        TextInput::make('nik')
-                                            ->label('NIK')
-                                            ->required()
-                                            ->unique('patients', 'nik')
-                                            ->maxLength(16),
+                            Select::make('patient_id')
+                                ->label('Nama Pasien')
+                                ->searchable()
+                                ->relationship('patient', 'name')
+                                ->required()
+                                ->preload()
+                                ->helperText('Pilih nama pasien atau tambahkan pasien baru.')
+                                ->createOptionForm([
+                                    TextInput::make('nik')
+                                        ->label('NIK')
+                                        ->required()
+                                        ->unique('patients', 'nik')
+                                        ->maxLength(16)
+                                        ->helperText('Masukkan 16 digit NIK unik pasien.'),
 
-                                        TextInput::make('name')
-                                            ->label('Nama')
-                                            ->required(),
+                                    TextInput::make('name')
+                                        ->label('Nama')
+                                        ->required()
+                                        ->helperText('Masukkan nama lengkap pasien.'),
 
-                                        DatePicker::make('date_of_birth')
-                                            ->label('Tanggal Lahir')
-                                            ->required(),
+                                    DatePicker::make('date_of_birth')
+                                        ->label('Tanggal Lahir')
+                                        ->required()
+                                        ->helperText('Pilih tanggal lahir pasien.'),
 
-                                        Select::make('gender')
-                                            ->label('Jenis Kelamin')
-                                            ->options([
-                                                'L' => 'Laki-Laki',
-                                                'P' => 'Perempuan',
-                                            ])
-                                            ->required(),
+                                    Select::make('gender')
+                                        ->label('Jenis Kelamin')
+                                        ->options([
+                                            'L' => 'Laki-Laki',
+                                            'P' => 'Perempuan',
+                                        ])
+                                        ->required()
+                                        ->helperText('Pilih jenis kelamin pasien.'),
 
-                                        TextInput::make('phone_number')
-                                            ->label('Nomor Telepon')
-                                            ->required(),
+                                    TextInput::make('phone_number')
+                                        ->label('Nomor Telepon')
+                                        ->required()
+                                        ->helperText('Masukkan nomor telepon pasien.'),
 
-                                        // Select::make('event_id')
-                                        //     ->label('Event Kesehatan')
-                                        //     ->relationship('event', 'name')
-                                        //     ->nullable(),
+                                    TextInput::make('created_by')
+                                        ->default(fn() => Auth::id())
+                                        ->hidden(),
 
-                                        // Select::make('address_id')
-                                        //     ->label('Alamat')
-                                        //     ->relationship('address', 'full_address')
-                                        //     ->nullable(),
+                                    TextInput::make('updated_by')
+                                        ->default(fn() => Auth::id())
+                                        ->hidden(),
+                                ]),
+                        ])
+                        ->columns(2),
 
-                                        TextInput::make('created_by')
-                                            ->default(fn() => Auth::id())
-                                            ->hidden(),
+                    Fieldset::make('Detail Konseling')
+                        ->schema([
+                            DatePicker::make('home_visit_date')
+                                ->label('Tanggal Kunjungan Rumah')
+                                ->columnSpanFull()
+                                ->nullable()
+                                ->helperText('Pilih tanggal untuk kunjungan rumah, jika ada.'),
 
-                                        TextInput::make('updated_by')
-                                            ->default(fn() => Auth::id())
-                                            ->hidden(),
-                                    ]),
-                            ])
-                            ->columns(2),
+                            Textarea::make('condition')
+                                ->label('Kondisi/Masalah')
+                                ->rows(3)
+                                ->required()
+                                ->helperText('Jelaskan kondisi atau masalah yang dihadapi pasien.'),
 
-                        Fieldset::make('Detail Konseling')
-                            ->schema([
-                                DatePicker::make('home_visit_date')
-                                    ->label('Tanggal Kunjungan Rumah')
-                                    ->columnSpanFull()
-                                    ->nullable(),
+                            Textarea::make('recommendation')
+                                ->label('Saran/Rekomendasi')
+                                ->rows(3)
+                                ->required()
+                                ->helperText('Tulis saran atau rekomendasi untuk pasien.'),
 
-                                Textarea::make('condition')
-                                    ->label('Kondisi/Masalah')
-                                    ->rows(3)
-                                    ->required(),
+                            Textarea::make('intervention')
+                                ->label('Intervensi')
+                                ->rows(3)
+                                ->nullable()
+                                ->helperText('Catat intervensi yang dilakukan, jika ada.'),
 
-                                Textarea::make('recommendation')
-                                    ->label('Saran/Rekomendasi')
-                                    ->rows(3)
-                                    ->required(),
+                            Textarea::make('notes')
+                                ->label('Keterangan')
+                                ->rows(3)
+                                ->nullable()
+                                ->helperText('Tambahkan keterangan tambahan jika diperlukan.'),
+                        ])
+                        ->columns(2),
+                ])
+                ->columns(1),
+        ]);
+}
 
-                                Textarea::make('intervention')
-                                    ->label('Intervensi')
-                                    ->rows(3)
-
-                                    ->nullable(),
-
-                                Textarea::make('notes')
-                                    ->label('Keterangan')
-                                    ->rows(3)
-                                    ->nullable(),
-                            ])
-                            ->columns(2),
-
-                        // Field untuk 'created_by' dan 'updated_by' yang disembunyikan
-                        TextInput::make('created_by')
-                            ->default(fn() => Auth::id())
-                            ->hidden(),
-
-                        TextInput::make('updated_by')
-                            ->default(fn() => Auth::id())
-                            ->hidden(),
-                    ])
-                    ->columns(1),
-            ]);
-    }
-
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['created_by'] = Auth::id();
-        $data['updated_by'] = Auth::id();
-        return $data;
-    }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        $data['updated_by'] = Auth::id();
-        return $data;
-    }
 
     public function table(Table $table): Table
     {
@@ -215,10 +195,19 @@ class CounselingReportsRelationManager extends RelationManager
             ])
             ->filters([])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['created_by'] = Auth::id();
+                        $data['updated_by'] = Auth::id();
+                        return $data;
+                    }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['updated_by'] = Auth::id();
+                        return $data;
+                    }),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

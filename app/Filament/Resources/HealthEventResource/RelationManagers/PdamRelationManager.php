@@ -28,28 +28,33 @@ class PdamRelationManager extends RelationManager
                     ->schema([
                         DatePicker::make('sampling_date')
                             ->label('Tanggal Sampling')
-                            ->required(),
+                            ->required()
+                            ->helperText('Pilih tanggal pengambilan sampel.'),
 
                         Select::make('patient_id')
                             ->label('Nama Pasien')
                             ->searchable()
-                            ->relationship('patient', 'name') // Adjusted to singular
+                            ->relationship('patient', 'name')
                             ->required()
                             ->preload()
+                            ->helperText('Pilih pasien yang relevan atau tambahkan pasien baru.')
                             ->createOptionForm([
                                 TextInput::make('nik')
                                     ->label('NIK')
                                     ->required()
                                     ->unique('patients', 'nik')
-                                    ->maxLength(16),
+                                    ->maxLength(16)
+                                    ->helperText('Masukkan 16 digit NIK unik pasien.'),
 
                                 TextInput::make('name')
                                     ->label('Nama')
-                                    ->required(),
+                                    ->required()
+                                    ->helperText('Masukkan nama lengkap pasien.'),
 
                                 DatePicker::make('date_of_birth')
                                     ->label('Tanggal Lahir')
-                                    ->required(),
+                                    ->required()
+                                    ->helperText('Pilih tanggal lahir pasien.'),
 
                                 Select::make('gender')
                                     ->label('Jenis Kelamin')
@@ -57,11 +62,13 @@ class PdamRelationManager extends RelationManager
                                         'L' => 'Laki-Laki',
                                         'P' => 'Perempuan',
                                     ])
-                                    ->required(),
+                                    ->required()
+                                    ->helperText('Pilih jenis kelamin pasien.'),
 
                                 TextInput::make('phone_number')
                                     ->label('Nomor Telepon')
-                                    ->required(),
+                                    ->required()
+                                    ->helperText('Masukkan nomor telepon pasien.'),
 
                                 TextInput::make('created_by')
                                     ->default(fn() => Auth::id())
@@ -80,78 +87,205 @@ class PdamRelationManager extends RelationManager
                                 'T' => 'Tinggi',
                                 'ST' => 'Sangat Tinggi',
                             ])
-                            ->required(),
+                            ->required()
+                            ->helperText('Pilih tingkat resiko berdasarkan hasil pengukuran.'),
                     ])
                     ->columns(1),
 
-                // Card: Hasil Pengukuran
                 Forms\Components\Card::make()
                     ->schema([
                         Forms\Components\Grid::make(4)->schema([
-                            TextInput::make('remaining_chlorine')->label('Sisa Chlor')->numeric(),
-                            TextInput::make('ph')->label('pH')->numeric(),
-                            TextInput::make('tds_measurement')->label('TDS Pengukuran')->numeric(),
-                            TextInput::make('temperature_measurement')->label('Suhu Pengukuran')->numeric(),
+                            TextInput::make('remaining_chlorine')
+                                ->label('Sisa Chlor')
+                                ->numeric()
+                                ->default(0)
+                                ->rule('nullable|regex:/^<?\d+(\.\d+)?$/')
+                                ->helperText('Masukkan angka antara 0-100, dapat menggunakan "<" untuk nilai kurang dari.'),
+
+                            TextInput::make('ph')
+                                ->label('pH')
+                                ->numeric()
+                                ->default(0)
+                                ->rule('nullable|between:0,14')
+                                ->helperText('Masukkan nilai pH antara 0 dan 14.'),
+
+                            TextInput::make('tds_measurement')
+                                ->label('TDS Pengukuran')
+                                ->numeric()
+                                ->default(0)
+                                ->rule('nullable|min:0')
+                                ->helperText('TDS tidak dibatasi nilai maksimal.'),
+
+                            TextInput::make('temperature_measurement')
+                                ->label('Suhu Pengukuran')
+                                ->numeric()
+                                ->default(0)
+                                ->rule('nullable|between:0,100')
+                                ->helperText('Masukkan suhu antara 0-100 derajat.'),
                         ]),
                     ])
                     ->columns(1)
                     ->label('Hasil Pengukuran'),
 
-                // Card: Hasil Pemeriksaan Lab
                 Forms\Components\Card::make()
                     ->schema([
-                        // Subgroup: Mikrobiologi
                         Forms\Components\Fieldset::make('Mikrobiologi')
                             ->schema([
                                 Forms\Components\Grid::make(4)->schema([
-                                    TextInput::make('total_coliform')->label('Total Coliform')->numeric(),
-                                    TextInput::make('e_coli')->label('E. Coli')->numeric(),
+                                    TextInput::make('total_coliform')
+                                        ->label('Total Coliform')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|min:0|max:100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('e_coli')
+                                        ->label('E. Coli')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|min:0|max:100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
                                 ]),
                             ]),
 
-                        // Subgroup: Fisika
                         Forms\Components\Fieldset::make('Fisika')
                             ->schema([
-                                Forms\Components\Grid::make(4)->schema([
-                                    TextInput::make('tds_lab')->label('TDS')->numeric(),
-                                    TextInput::make('turbidity')->label('Kekeruhan')->numeric(),
-                                    TextInput::make('color')->label('Warna'),
-                                    TextInput::make('odor')->label('Bau'),
-                                    TextInput::make('temperature_lab')->label('Suhu Lab')->numeric(),
+                                Forms\Components\Grid::make(5)->schema([
+                                    TextInput::make('tds_lab')
+                                        ->label('TDS')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|min:0')
+                                        ->helperText('Tidak ada batas nilai maksimal untuk TDS.'),
+
+                                    TextInput::make('turbidity')
+                                        ->label('Kekeruhan')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|min:0|max:100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('color')
+                                        ->label('Warna')
+                                        ->helperText('Masukkan deskripsi warna.'),
+
+                                    TextInput::make('odor')
+                                        ->label('Bau')
+                                        ->helperText('Masukkan deskripsi bau.'),
+
+                                    TextInput::make('temperature_lab')
+                                        ->label('Suhu Lab')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan suhu antara 0-100 derajat.'),
                                 ]),
                             ]),
 
-                        // Subgroup: Kimia
                         Forms\Components\Fieldset::make('Kimia')
                             ->schema([
                                 Forms\Components\Grid::make(4)->schema([
-                                    TextInput::make('aluminium')->label('Aluminium')->numeric(),
-                                    TextInput::make('arsenic')->label('Arsen')->numeric(),
-                                    TextInput::make('cadmium')->label('Kadmium')->numeric(),
-                                    TextInput::make('remaining_chlorine_lab')->label('Sisa Khlor')->numeric(),
-                                    TextInput::make('chromium_val_6')->label('Crom Val 6')->numeric(),
-                                    TextInput::make('fluoride')->label('Florida')->numeric(),
-                                    TextInput::make('iron')->label('Besi')->numeric(),
-                                    TextInput::make('lead')->label('Timbal')->numeric(),
-                                    TextInput::make('manganese')->label('Mangan')->numeric(),
-                                    TextInput::make('nitrite')->label('Nitrit')->numeric(),
-                                    TextInput::make('nitrate')->label('Nitrat')->numeric(),
-                                    TextInput::make('ph_lab')->label('pH Lab')->numeric(),
+                                    TextInput::make('aluminium')
+                                        ->label('Aluminium')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('arsenic')
+                                        ->label('Arsen')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('cadmium')
+                                        ->label('Kadmium')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('remaining_chlorine_lab')
+                                        ->label('Sisa Khlor')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('chromium_val_6')
+                                        ->label('Crom Val 6')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('fluoride')
+                                        ->label('Florida')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('iron')
+                                        ->label('Besi')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('lead')
+                                        ->label('Timbal')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('manganese')
+                                        ->label('Mangan')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('nitrite')
+                                        ->label('Nitrit')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('nitrate')
+                                        ->label('Nitrat')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,100')
+                                        ->helperText('Masukkan angka antara 0-100.'),
+
+                                    TextInput::make('ph_lab')
+                                        ->label('pH Lab')
+                                        ->numeric()
+                                        ->default(0)
+                                        ->rule('nullable|between:0,14')
+                                        ->helperText('Masukkan nilai pH antara 0 dan 14.'),
                                 ]),
                             ]),
                     ])
                     ->columns(1)
                     ->label('Hasil Pemeriksaan Lab'),
 
-                // Card: Keterangan
                 Forms\Components\Card::make()
                     ->schema([
-                        Textarea::make('notes')->label('Keterangan'),
+                        Textarea::make('notes')
+                            ->label('Keterangan')
+                            ->helperText('Tambahkan catatan tambahan jika diperlukan.'),
                     ])
                     ->columns(1)
                     ->label('Keterangan'),
             ]);
     }
+
+
 
     public function table(Table $table): Table
     {
@@ -306,10 +440,19 @@ class PdamRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['created_by'] = Auth::id();
+                        $data['updated_by'] = Auth::id();
+                        return $data;
+                    }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['updated_by'] = Auth::id();
+                        return $data;
+                    }),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

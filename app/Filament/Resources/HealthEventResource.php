@@ -189,9 +189,12 @@ class HealthEventResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                ->label('Isi'),
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['updated_by'] = Auth::id();
+                        return $data;
+                    })
+                    ->label('Isi'),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -203,7 +206,7 @@ class HealthEventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // PatientRelationManager::class,
+                // PatientRelationManager::class,
             CounselingReportsRelationManager::class,
             HousingSurveyRelationManager::class,
             PdamRelationManager::class,
