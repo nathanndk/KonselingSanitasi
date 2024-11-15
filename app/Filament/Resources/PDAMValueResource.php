@@ -24,7 +24,7 @@ class PDAMValueResource extends Resource
     protected static ?string $model = PdamParameter::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
-    // protected static ?string $navigationGroup = 'Laporan';
+    protected static ?string $navigationGroup = 'Salah';
 
     public static function getPluralLabel(): string
     {

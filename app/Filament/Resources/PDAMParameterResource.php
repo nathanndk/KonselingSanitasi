@@ -30,7 +30,7 @@ class PDAMParameterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
 
-    // protected static ?string $navigationGroup = 'Master Data';
+    protected static ?string $navigationGroup = 'Salah';
 
     public static function getPluralLabel(): string
     {
