@@ -11,6 +11,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\DatePicker;
+use Carbon\Carbon;
 
 class StatsOverview extends BaseWidget
 {
@@ -35,35 +36,34 @@ class StatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $startDate = $this->filters['startDate'] ?? null;
-        $endDate = $this->filters['endDate'] ?? null;
+        // Validasi filter tanggal
+        $startDate = isset($this->filters['startDate']) ? Carbon::parse($this->filters['startDate']) : null;
+        $endDate = isset($this->filters['endDate']) ? Carbon::parse($this->filters['endDate']) : null;
 
-        // Filter queries based on selected start and end date
-        $totalPatients = Patient::when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
-                                ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
-                                ->count();
+        // Query data pasien dengan optimisasi
+        $patientStats = Patient::selectRaw("COUNT(*) as total,
+                                            SUM(gender = 'L') as male,
+                                            SUM(gender = 'P') as female")
+            ->when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
+            ->first();
 
-        $malePatients = Patient::where('gender', 'L')
-                                ->when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
-                                ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
-                                ->count();
+        $totalPatients = $patientStats->total;
+        $malePatients = $patientStats->male;
+        $femalePatients = $patientStats->female;
 
-        $femalePatients = Patient::where('gender', 'P')
-                                ->when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
-                                ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
-                                ->count();
-
+        // Query laporan lainnya
         $totalPdamReports = Pdam::when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
-                                ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
-                                ->count();
+            ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
+            ->count();
 
         $totalSanitationCounselingReports = SanitationCondition::when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
-                                                                ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
-                                                                ->count();
+            ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
+            ->count();
 
         $totalHealthyHomeReports = HousingSurvey::when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
-                                                ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
-                                                ->count();
+            ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
+            ->count();
 
         return [
             Stat::make('Total Pasien', $totalPatients)

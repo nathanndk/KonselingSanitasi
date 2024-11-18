@@ -14,7 +14,7 @@ class CreatePatientsTable extends Migration
             $table->string('name');
             $table->date('date_of_birth');
             $table->string('gender');
-            $table->string('phone_number');
+            $table->string('phone_number')->nullable();
             $table->string('body_weight')->nullable();
             $table->decimal('fasting_blood_sugar', 5, 2)->nullable(); // Gula Darah Puasa (mg/dL)
             $table->decimal('postprandial_blood_sugar', 5, 2)->nullable(); // Gula Darah 2 jam PP (mg/dL)

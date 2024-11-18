@@ -18,7 +18,7 @@ class HousingSurveyPolicy
 
     public function view(User $user, HousingSurvey $housingSurvey): bool
     {
-        if ($user->hasPermissionTo('View Rumah Sehat')) {
+        if ($user->hasPermissionTo('View Rumah Sehat') && $housingSurvey->user_id === $user->id) {
             return true;
         }
         return false;

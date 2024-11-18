@@ -23,14 +23,14 @@ class Dashboard extends \Filament\Pages\Dashboard
             [
                 // TextInput::make('name'),
                 DatePicker::make('startDate')
-                    ->label('Start Date')
+                    ->label('Tanggal Mulai')
                     ->placeholder('Pilih tanggal mulai'),
 
                 DatePicker::make('endDate')
-                    ->label('End Date')
+                    ->label('Tanggal Selesai')
                     ->placeholder('Pilih tanggal akhir')
                     ->rules([
-                        'after_or_equal:startDate', // Pastikan endDate setelah startDate
+                        'after_or_equal:startDate',
                     ]),
                 // Toggle::make('active')
             ]
