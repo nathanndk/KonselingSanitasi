@@ -120,27 +120,35 @@ class HealthEventResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([])
-            // ->modifyQueryUsing(function (Builder $query): Builder {
-            //     $user = Auth::user();
+            ->modifyQueryUsing(function (Builder $query) {
+                $user = Auth::user();
 
-            //     if (in_array($user->role, ['Admin', 'Dinas Kesehatan'])) {
-            //         // Admin dan Dinas Kesehatan dapat melihat semua data
-            //         return $query;
-            //     }
+                // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
+                if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
+                    return $query;
+                }
 
-            //     if (in_array($user->role, ['Kader', 'Petugas'])) {
-            //         // Kader dan Petugas dapat melihat data yang dibuat oleh Puskesmas mereka
-            //         return $query->where('health_center_id', $user->health_center_id);
-            //     }
+                // Jika puskesmas, hanya melihat data yang terkait dengan puskesmas mereka
+                if ($user->role === 'puskesmas') {
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });
+                }
 
-            //     if ($user->role === 'Puskesmas') {
-            //         // Puskesmas hanya melihat data yang mereka buat
-            //         return $query->where('health_center_id', $user->health_center_id);
-            //     }
+                // Jika petugas atau kader, hanya melihat data yang mereka buat dan sesuai dengan health_center_id mereka
+                if (in_array($user->role, ['petugas', 'kader'])) {
+                    return $query
+                        // ->where('created_by', $user->id)  // Menampilkan hanya data yang dibuat oleh pengguna yang login
+                        ->whereHas('user.healthCenter', function ($q) use ($user) {
+                            $q->where('id', $user->health_center_id); // Memastikan data tersebut terkait dengan health_center_id pengguna
+                        });
+                }
 
-            //     // Jika role tidak dikenal, kosongkan query
-            //     return $query->whereNull('id');
-            // })
+                // Default, jika role lain
+                return $query->where('id', null); // Tidak menampilkan data apa pun
+            })
+
+
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
@@ -172,7 +180,7 @@ class HealthEventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // PatientRelationManager::class,
+                // PatientRelationManager::class,
             CounselingReportsRelationManager::class,
             HousingSurveyRelationManager::class,
             PdamRelationManager::class,

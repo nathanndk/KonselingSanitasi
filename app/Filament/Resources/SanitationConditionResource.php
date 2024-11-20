@@ -315,8 +315,9 @@ class SanitationConditionResource extends Resource
 
                 // Jika petugas atau kader, hanya melihat data yang mereka buat
                 if (in_array($user->role, ['petugas', 'kader'])) {
-                    return $query->where('created_by', $user->id);
-                }
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });                }
 
                 // Default, jika role lain
                 return $query->where('id', null); // Tidak menampilkan data apa pun

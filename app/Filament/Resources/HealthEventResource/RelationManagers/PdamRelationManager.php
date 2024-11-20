@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\HealthEventResource\RelationManagers;
 
+use App\Models\District;
+use App\Models\Subdistrict;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Wizard;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -24,264 +27,212 @@ class PdamRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\Card::make()
-                    ->schema([
-                        DatePicker::make('sampling_date')
-                            ->label('Tanggal Sampling')
-                            ->required()
-                            ->helperText('Pilih tanggal pengambilan sampel.'),
+                Wizard::make([
+                    // Step 1: Informasi Dasar
+                    Wizard\Step::make('Informasi Dasar')
+                        ->description('Masukkan informasi dasar')
+                        ->icon('heroicon-o-document')
+                        ->schema([
+                            DatePicker::make('sampling_date')
+                                ->label('Tanggal Sampling')
+                                ->placeholder('Pilih tanggal pengambilan sampel')
+                                ->helperText('Masukkan tanggal ketika sampel diambil.')
+                                ->required(),
 
-                        Select::make('patient_id')
-                            ->label('Nama Pasien')
-                            ->searchable()
-                            ->relationship('patient', 'name')
-                            ->required()
-                            ->preload()
-                            ->helperText('Pilih pasien yang relevan atau tambahkan pasien baru.')
-                            ->createOptionForm([
-                                TextInput::make('nik')
-                                    ->label('NIK')
-                                    ->required()
-                                    ->unique('patients', 'nik')
-                                    ->maxLength(16)
-                                    ->helperText('Masukkan 16 digit NIK unik pasien.'),
+                            Select::make('patient_id')
+                                ->label('Nama Pasien')
+                                ->searchable()
+                                ->relationship('patient', 'name')
+                                ->required()
+                                ->preload()
+                                ->helperText('Pilih pasien dari daftar. Anda juga dapat menambahkan pasien baru.')
+                                ->createOptionForm([
+                                    Forms\Components\Fieldset::make('Informasi Personal')
+                                        ->schema([
+                                            Forms\Components\TextInput::make('nik')
+                                                ->label('NIK')
+                                                ->required()
+                                                ->maxLength(16)
+                                                ->minLength(16)
+                                                ->placeholder('Masukkan NIK 16 digit')
+                                                ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat pada KTP.'),
 
-                                TextInput::make('name')
-                                    ->label('Nama')
-                                    ->required()
-                                    ->helperText('Masukkan nama lengkap pasien.'),
+                                            Forms\Components\TextInput::make('name')
+                                                ->label('Nama')
+                                                ->required()
+                                                ->maxLength(50)
+                                                ->placeholder('Masukkan nama lengkap')
+                                                ->helperText('Gunakan nama sesuai identitas resmi.'),
 
-                                DatePicker::make('date_of_birth')
-                                    ->label('Tanggal Lahir')
-                                    ->required()
-                                    ->helperText('Pilih tanggal lahir pasien.'),
+                                            Forms\Components\DatePicker::make('date_of_birth')
+                                                ->label('Tanggal Lahir')
+                                                ->required()
+                                                ->rule('before_or_equal:today')
+                                                ->placeholder('Pilih tanggal lahir')
+                                                ->helperText('Masukkan tanggal lahir sesuai dokumen resmi.')
+                                                ->maxDate(now()),
 
-                                Select::make('gender')
-                                    ->label('Jenis Kelamin')
-                                    ->options([
-                                        'L' => 'Laki-Laki',
-                                        'P' => 'Perempuan',
-                                    ])
-                                    ->required()
-                                    ->helperText('Pilih jenis kelamin pasien.'),
+                                            Forms\Components\Select::make('gender')
+                                                ->label('Jenis Kelamin')
+                                                ->options([
+                                                    'L' => 'Laki-laki',
+                                                    'P' => 'Perempuan',
+                                                ])
+                                                ->required()
+                                                ->placeholder('Pilih jenis kelamin')
+                                                ->helperText('Pilih salah satu sesuai jenis kelamin.'),
 
-                                TextInput::make('phone_number')
-                                    ->label('Nomor Telepon')
-                                    ->required()
-                                    ->helperText('Masukkan nomor telepon pasien.'),
+                                            Forms\Components\TextInput::make('phone_number')
+                                                ->label('Nomor Telepon')
+                                                ->minLength(10)
+                                                ->maxLength(15)
+                                                ->placeholder('Masukkan nomor telepon aktif')
+                                                ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.'),
+                                        ])
+                                        ->columns(1)
+                                        ->label('Informasi Personal'),
 
-                                TextInput::make('created_by')
-                                    ->default(fn() => Auth::id())
-                                    ->hidden(),
+                                    Forms\Components\Fieldset::make('Alamat')
+                                        ->schema([
+                                            Forms\Components\Select::make('health_center_id')
+                                                ->label('Puskesmas')
+                                                ->relationship('healthCenter', 'name')
+                                                ->placeholder('Pilih puskesmas tempat Anda terdaftar')
+                                                ->searchable()
+                                                ->preload()
+                                                ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
 
-                                TextInput::make('updated_by')
-                                    ->default(fn() => Auth::id())
-                                    ->hidden(),
-                            ]),
+                                            Forms\Components\Textarea::make('address.street')
+                                                ->label('Jalan')
+                                                ->placeholder('Masukkan nama jalan')
+                                                ->helperText('Cantumkan nama jalan tempat Anda tinggal saat ini.'),
 
-                        Select::make('risk_level')
-                            ->label('Tingkat Resiko')
-                            ->options([
-                                'R' => 'Rendah',
-                                'S' => 'Sedang',
-                                'T' => 'Tinggi',
-                                'ST' => 'Sangat Tinggi',
-                            ])
-                            ->required()
-                            ->helperText('Pilih tingkat resiko berdasarkan hasil pengukuran.'),
-                    ])
-                    ->columns(1),
+                                            Forms\Components\Select::make('address.district_code')
+                                                ->label('Kecamatan')
+                                                ->options(District::pluck('district_name', 'district_code'))
+                                                ->searchable()
+                                                ->reactive()
+                                                ->placeholder('Pilih kecamatan')
+                                                ->helperText('Isi dengan kecamatan tempat tinggal Anda.')
+                                                ->afterStateUpdated(function ($set) {
+                                                    $set('address.subdistrict_code', null);
+                                                }),
 
-                Forms\Components\Card::make()
-                    ->schema([
-                        Forms\Components\Grid::make(4)->schema([
-                            TextInput::make('remaining_chlorine')
-                                ->label('Sisa Chlor')
-                                ->numeric()
-                                ->default(0)
-                                ->rule('nullable|regex:/^<?\d+(\.\d+)?$/')
-                                ->helperText('Masukkan angka antara 0-100, dapat menggunakan "<" untuk nilai kurang dari.'),
+                                            Forms\Components\Select::make('address.subdistrict_code')
+                                                ->label('Kelurahan')
+                                                ->options(function (callable $get) {
+                                                    $districtCode = $get('address.district_code');
+                                                    return $districtCode
+                                                        ? Subdistrict::where('district_code', $districtCode)->pluck('subdistrict_name', 'subdistrict_code')
+                                                        : [];
+                                                })
+                                                ->searchable()
+                                                ->placeholder('Pilih kelurahan')
+                                                ->helperText('Isi dengan kelurahan tempat tinggal Anda.'),
+                                        ])
+                                        ->columns(1)
+                                        ->label('Detail Alamat'),
+                                ]),
 
-                            TextInput::make('ph')
-                                ->label('pH')
-                                ->numeric()
-                                ->default(0)
-                                ->rule('nullable|between:0,14')
-                                ->helperText('Masukkan nilai pH antara 0 dan 14.'),
-
-                            TextInput::make('tds_measurement')
-                                ->label('TDS Pengukuran')
-                                ->numeric()
-                                ->default(0)
-                                ->rule('nullable|min:0')
-                                ->helperText('TDS tidak dibatasi nilai maksimal.'),
-
-                            TextInput::make('temperature_measurement')
-                                ->label('Suhu Pengukuran')
-                                ->numeric()
-                                ->default(0)
-                                ->rule('nullable|between:0,100')
-                                ->helperText('Masukkan suhu antara 0-100 derajat.'),
+                            Select::make('risk_level')
+                                ->label('Tingkat Resiko')
+                                ->options([
+                                    'R' => 'Rendah',
+                                    'S' => 'Sedang',
+                                    'T' => 'Tinggi',
+                                    'ST' => 'Sangat Tinggi',
+                                ])
+                                ->required()
+                                ->placeholder('Pilih tingkat resiko')
+                                ->helperText('Pilih tingkat resiko berdasarkan hasil pemeriksaan.'),
                         ]),
-                    ])
-                    ->columns(1)
-                    ->label('Hasil Pengukuran'),
 
-                Forms\Components\Card::make()
-                    ->schema([
-                        Forms\Components\Fieldset::make('Mikrobiologi')
-                            ->schema([
-                                Forms\Components\Grid::make(4)->schema([
-                                    TextInput::make('total_coliform')
-                                        ->label('Total Coliform')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|min:0|max:100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
+                    // Step 2: Hasil Pengukuran
+                    Wizard\Step::make('Hasil Pengukuran')
+                        ->description('Isi hasil pengukuran')
+                        ->icon('heroicon-o-chart-bar')
+                        ->schema([
+                            Forms\Components\TextInput::make('remaining_chlorine')
+                                ->label('Sisa Chlor')
+                                ->placeholder('Masukkan nilai sisa chlor')
+                                ->helperText('Isi dengan hasil pengukuran sisa chlor.'),
 
-                                    TextInput::make('e_coli')
-                                        ->label('E. Coli')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|min:0|max:100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
-                                ]),
-                            ]),
+                            Forms\Components\TextInput::make('ph')
+                                ->label('pH')
+                                ->placeholder('Masukkan nilai pH')
+                                ->helperText('Isi dengan hasil pengukuran pH.'),
 
-                        Forms\Components\Fieldset::make('Fisika')
-                            ->schema([
-                                Forms\Components\Grid::make(5)->schema([
-                                    TextInput::make('tds_lab')
-                                        ->label('TDS')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|min:0')
-                                        ->helperText('Tidak ada batas nilai maksimal untuk TDS.'),
+                            Forms\Components\TextInput::make('tds_measurement')
+                                ->label('TDS Pengukuran')
+                                ->placeholder('Masukkan nilai TDS')
+                                ->helperText('Isi dengan hasil pengukuran Total Dissolved Solids (TDS).'),
 
-                                    TextInput::make('turbidity')
-                                        ->label('Kekeruhan')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|min:0|max:100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
+                            Forms\Components\TextInput::make('temperature_measurement')
+                                ->label('Suhu Pengukuran')
+                                ->placeholder('Masukkan suhu')
+                                ->helperText('Isi dengan hasil pengukuran suhu air.'),
+                        ]),
 
-                                    TextInput::make('color')
-                                        ->label('Warna')
-                                        ->helperText('Masukkan deskripsi warna.'),
+                    // Step 3: Hasil Pemeriksaan Lab
+                    Wizard\Step::make('Hasil Pemeriksaan Lab')
+                        ->description('Masukkan hasil pemeriksaan laboratorium')
+                        ->icon('heroicon-o-beaker')
+                        ->schema([
+                            Forms\Components\TextInput::make('odor')
+                                ->label('Bau')
+                                ->placeholder('Masukkan deskripsi bau')
+                                ->helperText('Isi dengan hasil pengamatan bau air.'),
 
-                                    TextInput::make('odor')
-                                        ->label('Bau')
-                                        ->helperText('Masukkan deskripsi bau.'),
+                            Forms\Components\TextInput::make('temperature_measurement')
+                                ->label('Suhu Lab')
+                                ->placeholder('Masukkan suhu di laboratorium')
+                                ->helperText('Isi dengan hasil pengukuran suhu dari lab.'),
 
-                                    TextInput::make('temperature_lab')
-                                        ->label('Suhu Lab')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan suhu antara 0-100 derajat.'),
-                                ]),
-                            ]),
+                            Forms\Components\TextInput::make('fluoride')
+                                ->label('Florida')
+                                ->placeholder('Masukkan nilai Florida')
+                                ->helperText('Isi dengan hasil tes kadar Fluoride.'),
 
-                        Forms\Components\Fieldset::make('Kimia')
-                            ->schema([
-                                Forms\Components\Grid::make(4)->schema([
-                                    TextInput::make('aluminium')
-                                        ->label('Aluminium')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
+                            Forms\Components\TextInput::make('iron')
+                                ->label('Besi')
+                                ->placeholder('Masukkan nilai Besi')
+                                ->helperText('Isi dengan hasil tes kadar Besi.'),
 
-                                    TextInput::make('arsenic')
-                                        ->label('Arsen')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
+                            Forms\Components\TextInput::make('lead')
+                                ->label('Timbal')
+                                ->placeholder('Masukkan nilai Timbal')
+                                ->helperText('Isi dengan hasil tes kadar Timbal.'),
 
-                                    TextInput::make('cadmium')
-                                        ->label('Kadmium')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
+                            Forms\Components\TextInput::make('manganese')
+                                ->label('Mangan')
+                                ->placeholder('Masukkan nilai Mangan')
+                                ->helperText('Isi dengan hasil tes kadar Mangan.'),
 
-                                    TextInput::make('remaining_chlorine_lab')
-                                        ->label('Sisa Khlor')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
+                            Forms\Components\TextInput::make('nitrite')
+                                ->label('Nitrit')
+                                ->placeholder('Masukkan nilai Nitrit')
+                                ->helperText('Isi dengan hasil tes kadar Nitrit.'),
 
-                                    TextInput::make('chromium_val_6')
-                                        ->label('Crom Val 6')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
+                            Forms\Components\TextInput::make('nitrate')
+                                ->label('Nitrat')
+                                ->placeholder('Masukkan nilai Nitrat')
+                                ->helperText('Isi dengan hasil tes kadar Nitrat.'),
+                        ]),
 
-                                    TextInput::make('fluoride')
-                                        ->label('Florida')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
-
-                                    TextInput::make('iron')
-                                        ->label('Besi')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
-
-                                    TextInput::make('lead')
-                                        ->label('Timbal')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
-
-                                    TextInput::make('manganese')
-                                        ->label('Mangan')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
-
-                                    TextInput::make('nitrite')
-                                        ->label('Nitrit')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
-
-                                    TextInput::make('nitrate')
-                                        ->label('Nitrat')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,100')
-                                        ->helperText('Masukkan angka antara 0-100.'),
-
-                                    TextInput::make('ph_lab')
-                                        ->label('pH Lab')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->rule('nullable|between:0,14')
-                                        ->helperText('Masukkan nilai pH antara 0 dan 14.'),
-                                ]),
-                            ]),
-                    ])
-                    ->columns(1)
-                    ->label('Hasil Pemeriksaan Lab'),
-
-                Forms\Components\Card::make()
-                    ->schema([
-                        Textarea::make('notes')
-                            ->label('Keterangan')
-                            ->helperText('Tambahkan catatan tambahan jika diperlukan.'),
-                    ])
-                    ->columns(1)
-                    ->label('Keterangan'),
+                    // Step 4: Keterangan
+                    Wizard\Step::make('Keterangan')
+                        ->description('Tambahkan keterangan')
+                        ->icon('heroicon-o-home')
+                        ->schema([
+                            Forms\Components\Textarea::make('notes')
+                                ->label('Keterangan')
+                                ->placeholder('Masukkan keterangan tambahan')
+                                ->helperText('Isi dengan keterangan tambahan terkait sampel atau hasil pemeriksaan.')
+                                ->rows(5)
+                                ->maxLength(255),
+                        ]),
+                ])
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -439,6 +390,30 @@ class PdamRelationManager extends RelationManager
             ->filters([
                 //
             ])
+            ->modifyQueryUsing(function (Builder $query) {
+                $user = Auth::user();
+
+                // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
+                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                    return $query;
+                }
+
+                // Jika puskesmas, hanya melihat data yang terkait dengan puskesmas mereka
+                if ($user->role === 'puskesmas') {
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });
+                }
+
+                // Jika petugas atau kader, hanya melihat data yang mereka buat
+                if (in_array($user->role, ['petugas', 'kader'])) {
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });                }
+
+                // Default, jika role lain
+                return $query->where('id', null); // Tidak menampilkan data apa pun
+            })
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->mutateFormDataUsing(function (array $data): array {

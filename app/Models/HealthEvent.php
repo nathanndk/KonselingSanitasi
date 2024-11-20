@@ -61,5 +61,8 @@ class HealthEvent extends Model
         return $this->hasMany(HousingSurvey::class, 'event_id');
 
     }
+    public function user(){
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
 }
