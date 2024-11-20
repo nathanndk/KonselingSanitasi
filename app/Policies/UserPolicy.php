@@ -11,8 +11,10 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Mengembalikan nilai boolean sesuai tipe pengembalian yang diharapkan
-        return $user->hasRole(['Admin']);
+        if ($user->hasPermissionTo('View Users')) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -20,8 +22,10 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        // Contoh: Hanya admin atau pengguna yang sama yang dapat melihat
-        return $user->hasRole('Admin') || $user->id === $model->id;
+        if ($user->hasPermissionTo('View Users')) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -29,8 +33,10 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        // Contoh: Hanya admin yang bisa membuat user baru
-        return $user->hasRole('Admin');
+        if ($user->hasPermissionTo('Create Users')) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -38,8 +44,10 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        // Contoh: Hanya admin atau pengguna itu sendiri yang bisa memperbarui data mereka
-        return $user->hasRole('Admin') || $user->id === $model->id;
+        if ($user->hasPermissionTo('Edit Users')) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -47,8 +55,10 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        // Contoh: Hanya admin yang bisa menghapus user
-        return $user->hasRole('Admin');
+        if ($user->hasPermissionTo('Delete Users')) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -56,8 +66,10 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        // Contoh: Hanya admin yang bisa me-restore user
-        return $user->hasRole('Admin');
+        if ($user->hasPermissionTo('Restore Users')) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -65,7 +77,9 @@ class UserPolicy
      */
     public function forceDelete(User $user, User $model): bool
     {
-        // Contoh: Hanya admin yang bisa menghapus permanen user
-        return $user->hasRole('Admin');
+        if ($user->hasPermissionTo('Force Delete Users')) {
+            return true;
+        }
+        return false;
     }
 }
