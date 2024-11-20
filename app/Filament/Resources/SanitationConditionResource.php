@@ -299,24 +299,29 @@ class SanitationConditionResource extends Resource
                 //     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->modifyQueryUsing(function (Builder $query) {
-                $user = auth()->user();
+                $user = Auth::user();
 
-                switch ($user->role) {
-                    case 'Petugas':
-                        $query->where('created_by', $user->id);
-                        break;
-
-                    case 'Kader':
-                        $query->where('created_by', $user->id);
-                        break;
-
-                    case 'Puskesmas':
-                        $query->where('health_center_id', $user->health_center_id);
-                        break;
+                // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
+                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                    return $query;
                 }
 
-                return $query;
+                // Jika puskesmas, hanya melihat data yang terkait dengan puskesmas mereka
+                if ($user->role === 'puskesmas') {
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });
+                }
+
+                // Jika petugas atau kader, hanya melihat data yang mereka buat
+                if (in_array($user->role, ['petugas', 'kader'])) {
+                    return $query->where('created_by', $user->id);
+                }
+
+                // Default, jika role lain
+                return $query->where('id', null); // Tidak menampilkan data apa pun
             })
+
             ->filters([
                 // Tambahkan filter jika diperlukan
             ])

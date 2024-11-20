@@ -18,6 +18,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ExportAction as ActionsExportAction;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class HouseResource extends Resource
 {
@@ -586,6 +588,29 @@ class HouseResource extends Resource
                     ->label('Catatan')
                     ->limit(100),
             ])
+            ->modifyQueryUsing(function (Builder $query) {
+                $user = Auth::user();
+
+                // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
+                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                    return $query;
+                }
+
+                // Jika puskesmas, hanya melihat data yang terkait dengan puskesmas mereka
+                if ($user->role === 'puskesmas') {
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });
+                }
+
+                // Jika petugas atau kader, hanya melihat data yang mereka buat
+                if (in_array($user->role, ['petugas', 'kader'])) {
+                    return $query->where('created_by', $user->id);
+                }
+
+                // Default, jika role lain
+                return $query->where('id', null); // Tidak menampilkan data apa pun
+            })
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

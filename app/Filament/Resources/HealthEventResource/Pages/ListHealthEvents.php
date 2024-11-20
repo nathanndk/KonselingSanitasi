@@ -10,6 +10,7 @@ use App\Filament\Resources\HealthEventResource\Widgets\HealthEventStatsOverview;
 use App\Filament\Widgets\PuskesmasStatsOverview;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
 
 class ListHealthEvents extends ListRecords
 {
@@ -18,7 +19,12 @@ class ListHealthEvents extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+            ->mutateFormDataUsing(function (array $data): array {
+                $data['created_by'] = Auth::id();
+                $data['updated_by'] = Auth::id();
+                return $data;
+            }),
         ];
     }
     protected function getHeaderWidgets(): array

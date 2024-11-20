@@ -4,12 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\HealthEventResource\Pages;
 use App\Filament\Resources\HealthEventResource\RelationManagers\CounselingReportsRelationManager;
-use App\Filament\Resources\HealthEventResource\RelationManagers\HouseConditionsRelationManager;
 use App\Filament\Resources\HealthEventResource\RelationManagers\HousingSurveyRelationManager;
-use App\Filament\Resources\HealthEventResource\RelationManagers\PatientRelationManager;
-use App\Filament\Resources\HealthEventResource\RelationManagers\PatientsRelationManager;
-use App\Filament\Resources\HealthEventResource\RelationManagers\PdamConditionsRelationManager;
-use App\Filament\Resources\HealthEventResource\RelationManagers\PdamParametersRelationManager;
 use App\Filament\Resources\HealthEventResource\RelationManagers\PdamRelationManager;
 use App\Models\HealthEvent;
 use App\Models\Patient;
@@ -23,12 +18,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Card;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Infolist;
 use Illuminate\Support\Facades\Auth;
-use Filament\Tables\Filters\Filter;
+use Illuminate\Database\Eloquent\Builder;
 
 class HealthEventResource extends Resource
 {
@@ -97,7 +89,6 @@ class HealthEventResource extends Resource
                     ])
             ]);
     }
-
     public static function table(Table $table): Table
     {
         return $table
@@ -128,67 +119,28 @@ class HealthEventResource extends Resource
                     ->dateTime()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            // ->filters([
-            //     Filter::make('id')
-            //         ->label('ID')
-            //         ->form([
-            //             TextInput::make('id')->label('ID'),
-            //         ]),
+            ->filters([])
+            // ->modifyQueryUsing(function (Builder $query): Builder {
+            //     $user = Auth::user();
 
-            //     Filter::make('title')
-            //         ->label('Judul Acara')
-            //         ->form([
-            //             TextInput::make('title')->label('Judul Acara'),
-            //         ]),
+            //     if (in_array($user->role, ['Admin', 'Dinas Kesehatan'])) {
+            //         // Admin dan Dinas Kesehatan dapat melihat semua data
+            //         return $query;
+            //     }
 
-            //     Filter::make('description')
-            //         ->label('Deskripsi Acara')
-            //         ->form([
-            //             Textarea::make('description')->label('Deskripsi Acara'),
-            //         ]),
+            //     if (in_array($user->role, ['Kader', 'Petugas'])) {
+            //         // Kader dan Petugas dapat melihat data yang dibuat oleh Puskesmas mereka
+            //         return $query->where('health_center_id', $user->health_center_id);
+            //     }
 
-            //     Filter::make('event_date')
-            //         ->label('Tanggal Acara')
-            //         ->form([
-            //             DatePicker::make('event_date')->label('Tanggal Acara'),
-            //         ]),
+            //     if ($user->role === 'Puskesmas') {
+            //         // Puskesmas hanya melihat data yang mereka buat
+            //         return $query->where('health_center_id', $user->health_center_id);
+            //     }
 
-            //     Filter::make('start_time')
-            //         ->label('Waktu Mulai')
-            //         ->form([
-            //             DateTimePicker::make('start_time')->label('Waktu Mulai'),
-            //         ]),
-
-            //     Filter::make('end_time')
-            //         ->label('Waktu Selesai')
-            //         ->form([
-            //             DateTimePicker::make('end_time')->label('Waktu Selesai'),
-            //         ]),
-
-            //     Filter::make('created_by')
-            //         ->label('Dibuat Oleh')
-            //         ->form([
-            //             TextInput::make('created_by')->label('Dibuat Oleh'),
-            //         ]),
-
-            //     Filter::make('created_at')
-            //         ->label('Dibuat Pada')
-            //         ->form([
-            //             DateTimePicker::make('created_at')->label('Dibuat Pada'),
-            //         ]),
-
-            //     Filter::make('updated_at')
-            //         ->label('Diupdate Pada')
-            //         ->form([
-            //             DateTimePicker::make('updated_at')->label('Diupdate Pada'),
-            //         ]),
-
-            //     Filter::make('updated_by')
-            //         ->label('Diupdate Oleh')
-            //         ->form([
-            //             TextInput::make('updated_by')->label('Diupdate Oleh'),
-            //         ]),
-            // ])
+            //     // Jika role tidak dikenal, kosongkan query
+            //     return $query->whereNull('id');
+            // })
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
@@ -203,6 +155,8 @@ class HealthEventResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
+
+
 
     // public static function infolist(Infolist $infolist): Infolist
     // {
