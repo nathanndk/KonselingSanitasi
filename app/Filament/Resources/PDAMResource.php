@@ -248,7 +248,7 @@ class PDAMResource extends Resource
                                 ->maxLength(255),
                         ]),
                 ])
-                ->columnSpanFull(),
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -281,7 +281,7 @@ class PDAMResource extends Resource
                     ->date('d F Y')
                     ->sortable(),
 
-                    TextColumn::make('patient.gender')
+                TextColumn::make('patient.gender')
                     ->label('Jenis Kelamin')
                     ->formatStateUsing(function ($state) {
                         return $state === 'L' ? 'Laki-laki' : ($state === 'P' ? 'Perempuan' : '-');
@@ -436,12 +436,15 @@ class PDAMResource extends Resource
             ->headerActions([
                 ActionsExportAction::make()
                     ->exporter(PdamExporter::class)
+                    ->label('Print Form PDAM')
+                    ->modalHeading('Print Form PDAM')
+                    ->modalButton('Print')
+                    ->columnMapping(false)
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
-
 
     public static function getRelations(): array
     {

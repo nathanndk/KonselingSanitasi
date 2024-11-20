@@ -3,6 +3,9 @@
 namespace App\Filament\Resources\HealthEventResource\Pages;
 
 use App\Filament\Resources\HealthEventResource;
+use App\Filament\Resources\HealthEventResource\RelationManagers\CounselingReportsRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\HousingSurveyRelationManager;
+use App\Filament\Resources\HealthEventResource\RelationManagers\PdamRelationManager;
 use App\Filament\Resources\HealthEventResource\Widgets\HealthEventStatsOverview;
 use App\Filament\Widgets\PuskesmasStatsOverview;
 use Filament\Actions;

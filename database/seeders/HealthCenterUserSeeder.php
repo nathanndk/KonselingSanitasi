@@ -15,22 +15,40 @@ class HealthCenterUserSeeder extends Seeder
         $healthCenters = HealthCenter::all();
 
         foreach ($healthCenters as $healthCenter) {
-            User::firstOrCreate(
-                ['username' => Str::slug($healthCenter->name, '_')], // Username dari nama puskesmas
-                [
-                    'name' => $healthCenter->name,
-                    'email' => Str::slug($healthCenter->name, '_') . '@puskesmas.com', // Email dengan format yang sesuai
-                    'password' => bcrypt('password123'), // Password default, dapat diganti sesuai kebutuhan
-                    'role' => RoleUser::Puskesmas->value,
-                    'nik' => '', // Isi sesuai kebutuhan atau buat null jika tidak ada data
-                    'date_of_birth' => now()->subYears(25)->format('Y-m-d'), // Tanggal lahir default, sesuaikan jika diperlukan
-                    'profile_pic' => null, // Biarkan null jika tidak ada gambar profil
-                    'gender' => 'Not Specified', // Isi 'Male' atau 'Female' jika perlu, atau biarkan default ini
-                    'health_center_id' => $healthCenter->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
+            $this->createUserWithRole(
+                'Puskesmas', // Role
+                Str::slug($healthCenter->name, '_') . '@puskesmas.com', // Email
+                Str::slug($healthCenter->name, '_'), // Username
+                RoleUser::Puskesmas->value, // Role Enum Value
+                $healthCenter->id // Health Center ID
             );
         }
+    }
+
+    /**
+     * Create a user with a specific role.
+     *
+     * @param string $role
+     * @param string $email
+     * @param string $username
+     * @param string $roleEnumValue
+     * @param int|null $healthCenterId
+     * @return void
+     */
+    private function createUserWithRole($role, $email, $username, $roleEnumValue, $healthCenterId = null)
+    {
+        $user = User::factory()->create([
+            'username' => $username,
+            'name' => ucfirst($role) . ' User',
+            'email' => $email,
+            'password' => bcrypt('password'),
+            'role' => $roleEnumValue,
+            'nik' => '1234567890123' . rand(10, 99),
+            'date_of_birth' => now()->subYears(30)->toDateString(),
+            'gender' => 'L',
+            'health_center_id' => $healthCenterId,
+        ]);
+
+        $user->assignRole($role); // Assign role to the user
     }
 }

@@ -25,8 +25,9 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Card;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use Filament\Tables\Filters\Filter;
 
 class HealthEventResource extends Resource
@@ -127,68 +128,69 @@ class HealthEventResource extends Resource
                     ->dateTime()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                Filter::make('id')
-                    ->label('ID')
-                    ->form([
-                        TextInput::make('id')->label('ID'),
-                    ]),
+            // ->filters([
+            //     Filter::make('id')
+            //         ->label('ID')
+            //         ->form([
+            //             TextInput::make('id')->label('ID'),
+            //         ]),
 
-                Filter::make('title')
-                    ->label('Judul Acara')
-                    ->form([
-                        TextInput::make('title')->label('Judul Acara'),
-                    ]),
+            //     Filter::make('title')
+            //         ->label('Judul Acara')
+            //         ->form([
+            //             TextInput::make('title')->label('Judul Acara'),
+            //         ]),
 
-                Filter::make('description')
-                    ->label('Deskripsi Acara')
-                    ->form([
-                        Textarea::make('description')->label('Deskripsi Acara'),
-                    ]),
+            //     Filter::make('description')
+            //         ->label('Deskripsi Acara')
+            //         ->form([
+            //             Textarea::make('description')->label('Deskripsi Acara'),
+            //         ]),
 
-                Filter::make('event_date')
-                    ->label('Tanggal Acara')
-                    ->form([
-                        DatePicker::make('event_date')->label('Tanggal Acara'),
-                    ]),
+            //     Filter::make('event_date')
+            //         ->label('Tanggal Acara')
+            //         ->form([
+            //             DatePicker::make('event_date')->label('Tanggal Acara'),
+            //         ]),
 
-                Filter::make('start_time')
-                    ->label('Waktu Mulai')
-                    ->form([
-                        DateTimePicker::make('start_time')->label('Waktu Mulai'),
-                    ]),
+            //     Filter::make('start_time')
+            //         ->label('Waktu Mulai')
+            //         ->form([
+            //             DateTimePicker::make('start_time')->label('Waktu Mulai'),
+            //         ]),
 
-                Filter::make('end_time')
-                    ->label('Waktu Selesai')
-                    ->form([
-                        DateTimePicker::make('end_time')->label('Waktu Selesai'),
-                    ]),
+            //     Filter::make('end_time')
+            //         ->label('Waktu Selesai')
+            //         ->form([
+            //             DateTimePicker::make('end_time')->label('Waktu Selesai'),
+            //         ]),
 
-                Filter::make('created_by')
-                    ->label('Dibuat Oleh')
-                    ->form([
-                        TextInput::make('created_by')->label('Dibuat Oleh'),
-                    ]),
+            //     Filter::make('created_by')
+            //         ->label('Dibuat Oleh')
+            //         ->form([
+            //             TextInput::make('created_by')->label('Dibuat Oleh'),
+            //         ]),
 
-                Filter::make('created_at')
-                    ->label('Dibuat Pada')
-                    ->form([
-                        DateTimePicker::make('created_at')->label('Dibuat Pada'),
-                    ]),
+            //     Filter::make('created_at')
+            //         ->label('Dibuat Pada')
+            //         ->form([
+            //             DateTimePicker::make('created_at')->label('Dibuat Pada'),
+            //         ]),
 
-                Filter::make('updated_at')
-                    ->label('Diupdate Pada')
-                    ->form([
-                        DateTimePicker::make('updated_at')->label('Diupdate Pada'),
-                    ]),
+            //     Filter::make('updated_at')
+            //         ->label('Diupdate Pada')
+            //         ->form([
+            //             DateTimePicker::make('updated_at')->label('Diupdate Pada'),
+            //         ]),
 
-                Filter::make('updated_by')
-                    ->label('Diupdate Oleh')
-                    ->form([
-                        TextInput::make('updated_by')->label('Diupdate Oleh'),
-                    ]),
-            ])
+            //     Filter::make('updated_by')
+            //         ->label('Diupdate Oleh')
+            //         ->form([
+            //             TextInput::make('updated_by')->label('Diupdate Oleh'),
+            //         ]),
+            // ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['updated_by'] = Auth::id();
@@ -202,11 +204,21 @@ class HealthEventResource extends Resource
             ]);
     }
 
+    // public static function infolist(Infolist $infolist): Infolist
+    // {
+    //     return $infolist
+    //         ->schema([
+    //             TextEntry::make('title'),
+    //             TextEntry::make('slug'),
+    //             TextEntry::make('content'),
+    //         ]);
+    // }
+
 
     public static function getRelations(): array
     {
         return [
-                // PatientRelationManager::class,
+            // PatientRelationManager::class,
             CounselingReportsRelationManager::class,
             HousingSurveyRelationManager::class,
             PdamRelationManager::class,
@@ -217,6 +229,7 @@ class HealthEventResource extends Resource
     {
         return [
             'index' => Pages\ListHealthEvents::route('/'),
+            'view' => Pages\ViewHealthEvent::route('/{record}'),
             // 'create' => Pages\CreateHealthEvent::route('/create'),
             'edit' => Pages\EditHealthEvent::route('/{record}/edit'),
         ];

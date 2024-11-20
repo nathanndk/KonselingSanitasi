@@ -45,11 +45,17 @@ class HealthEventPolicy
      */
     public function update(User $user, HealthEvent $healthEvent): bool
     {
-        if ($user->hasPermissionTo('Edit Jadwal Acara')) {
-            return true;
+        // Periksa jika user memiliki salah satu peran yang diizinkan
+        $allowedRoles = ['admin', 'dinas_kesehatan', 'puskesmas'];
+
+        if (in_array($user->role, $allowedRoles)) {
+            // Pastikan user adalah pembuat acara
+            return $user->id === $healthEvent->created_by;
         }
+
         return false;
     }
+
 
     /**
      * Determine whether the user can delete the model.

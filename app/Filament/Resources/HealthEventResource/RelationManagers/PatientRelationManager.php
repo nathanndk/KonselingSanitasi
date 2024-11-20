@@ -47,4 +47,11 @@ class PatientRelationManager extends RelationManager
                 ]),
             ]);
     }
+
+    public function canCreate(): bool
+    {
+        return true;
+    }
+
+    
 }
