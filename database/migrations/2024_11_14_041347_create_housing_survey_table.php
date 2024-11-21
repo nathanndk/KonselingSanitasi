@@ -54,7 +54,7 @@ class CreateHousingSurveyTable extends Migration
             $table->boolean('living_room_window_open')->default(false)->nullable(); // Kolom boolean
             $table->boolean('noise_level')->default(false)->nullable(); // Kolom boolean
             $table->boolean('humidity')->default(false)->nullable(); // Kolom boolean
-            $table->string('notes')->nullable(); // Kolom string
+            $table->text('notes')->nullable(); // Kolom string
 
             // Foreign Keys
             $table->foreignId('patient_id')->nullable()->constrained('patients')->onDelete('cascade');

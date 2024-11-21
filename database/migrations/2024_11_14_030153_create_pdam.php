@@ -39,7 +39,7 @@ return new class extends Migration
             $table->float('nitrite')->nullable();
             $table->float('nitrate')->nullable();
             $table->float('ph_lab')->nullable();
-            $table->string('notes')->nullable();
+            $table->text('notes')->nullable();
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
             $table->foreignId('event_id')->nullable()->constrained('health_events')->cascadeOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->cascadeOnDelete();

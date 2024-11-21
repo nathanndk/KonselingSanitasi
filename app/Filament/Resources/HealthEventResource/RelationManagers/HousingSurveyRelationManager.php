@@ -21,7 +21,7 @@ class HousingSurveyRelationManager extends RelationManager
 {
     protected static string $relationship = 'HousingSurvey';
 
-    public  function form(Form $form): Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
@@ -31,11 +31,11 @@ class HousingSurveyRelationManager extends RelationManager
                         ->description('Masukkan informasi dasar')
                         ->icon('heroicon-o-document')
                         ->schema([
-                            Forms\Components\DatePicker::make('sampling_date')
-                                ->label('Tanggal Kunjungan')
-                                ->required()
-                                ->placeholder('Pilih tanggal kunjungan')
-                                ->helperText('Masukkan tanggal kunjungan rumah sesuai jadwal.'),
+                            // Forms\Components\DatePicker::make('sampling_date')
+                            //     ->label('Tanggal Kunjungan')
+                            //     ->required()
+                            //     ->placeholder('Pilih tanggal kunjungan')
+                            //     ->helperText('Masukkan tanggal kunjungan rumah sesuai jadwal.'),
 
                             Select::make('patient_id')
                                 ->label('Nama Pasien')
@@ -47,7 +47,6 @@ class HousingSurveyRelationManager extends RelationManager
                                         ->schema([
                                             Forms\Components\TextInput::make('nik')
                                                 ->label('NIK')
-                                                ->required()
                                                 ->maxLength(16)
                                                 ->minLength(16)
                                                 ->placeholder('Masukkan NIK 16 digit')
@@ -89,13 +88,13 @@ class HousingSurveyRelationManager extends RelationManager
 
                                     Forms\Components\Fieldset::make('Alamat')
                                         ->schema([
-                                            Forms\Components\Select::make('health_center_id')
-                                                ->label('Puskesmas')
-                                                ->relationship('healthCenter', 'name')
-                                                ->placeholder('Pilih puskesmas tempat Anda terdaftar')
-                                                ->searchable()
-                                                ->preload()
-                                                ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
+                                            // Forms\Components\Select::make('health_center_id')
+                                            //     ->label('Puskesmas')
+                                            //     ->relationship('healthCenter', 'name')
+                                            //     ->placeholder('Pilih puskesmas tempat Anda terdaftar')
+                                            //     ->searchable()
+                                            //     ->preload()
+                                            //     ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
 
                                             Forms\Components\Textarea::make('address.street')
                                                 ->label('Jalan')
@@ -124,6 +123,24 @@ class HousingSurveyRelationManager extends RelationManager
                                                 ->searchable()
                                                 ->placeholder('Pilih kelurahan')
                                                 ->helperText('Isi dengan kelurahan tempat tinggal Anda.'),
+
+                                            Forms\Components\TextInput::make('address.rt')
+                                                ->label('RT')
+                                                ->maxLength(3)
+                                                ->minLength(3)
+                                                ->placeholder('Masukkan RT (3 digit)')
+                                                ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
+                                                ->numeric()
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('address.rw')
+                                                ->label('RW')
+                                                ->maxLength(3)
+                                                ->minLength(3)
+                                                ->placeholder('Masukkan RW (3 digit)')
+                                                ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
+                                                ->numeric()
+                                                ->columnSpan(1),
                                         ])
                                         ->label('Detail Alamat'),
                                 ]),
@@ -205,7 +222,7 @@ class HousingSurveyRelationManager extends RelationManager
                                 ->numeric()
                                 ->placeholder('Masukkan luas rumah dalam meter persegi')
                                 ->helperText('Isi luas total rumah dalam meter persegi.'),
-                                ]),
+                        ]),
 
                     // Step 2: Rumah Layak
                     Wizard\Step::make('Rumah Layak')
@@ -327,7 +344,7 @@ class HousingSurveyRelationManager extends RelationManager
                                         ->label('22. Permukaan rata, halus, tidak licin, dan tidak retak')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
-                            ]),
+                        ]),
 
                     // Step 3: Sarana Sanitasi
                     Wizard\Step::make('Sarana Sanitasi')
@@ -372,7 +389,7 @@ class HousingSurveyRelationManager extends RelationManager
                         ]),
 
                     // Step 4: Perilaku
-                        Wizard\Step::make('Perilaku')
+                    Wizard\Step::make('Perilaku')
                         ->description('Masukkan informasi kesehatan lingkungan')
                         ->icon('heroicon-o-home')
                         ->schema([
@@ -412,7 +429,7 @@ class HousingSurveyRelationManager extends RelationManager
                                 ->placeholder('Tambahkan catatan tambahan jika ada'),
                         ]),
                 ])->columnSpanFull(),
-                    ]);
+            ]);
     }
 
     public function table(Table $table): Table
@@ -438,7 +455,7 @@ class HousingSurveyRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
 
-                    Tables\Columns\TextColumn::make('drinking_water_source')
+                Tables\Columns\TextColumn::make('drinking_water_source')
                     ->label('Sumber Air Minum')
                     ->formatStateUsing(fn($state) => match ($state) {
                         'SUMUR' => 'Sumur',
@@ -528,7 +545,8 @@ class HousingSurveyRelationManager extends RelationManager
                 if (in_array($user->role, ['petugas', 'kader'])) {
                     return $query->whereHas('user.healthCenter', function ($q) use ($user) {
                         $q->where('id', $user->health_center_id);
-                    });                }
+                    });
+                }
 
                 // Default, jika role lain
                 return $query->where('id', null); // Tidak menampilkan data apa pun

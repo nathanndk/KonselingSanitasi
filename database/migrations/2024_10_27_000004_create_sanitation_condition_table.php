@@ -10,12 +10,10 @@ class CreateSanitationConditionTable extends Migration
     {
         Schema::create('sanitation_conditions', function (Blueprint $table) {
             $table->id();
-            $table->date('counseling_date')->nullable();
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
-            $table->string('condition')->nullable();
-            $table->string('recommendation')->nullable();
-            $table->date('home_visit_date')->nullable();
-            $table->string('intervention')->nullable();
+            $table->string('condition', 1000)->nullable();
+            $table->string('recommendation', 1000)->nullable();
+            $table->string('intervention', 1000)->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('event_id')->nullable()->constrained('health_events')->cascadeOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('cascade');

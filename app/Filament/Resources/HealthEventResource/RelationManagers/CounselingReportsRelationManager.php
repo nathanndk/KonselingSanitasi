@@ -23,19 +23,19 @@ class CounselingReportsRelationManager extends RelationManager
 {
     protected static string $relationship = 'counselingReports';
 
-    public  function form(Form $form): Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Fieldset::make('Informasi Konseling')
                     ->schema([
-                        DatePicker::make('counseling_date')
-                            ->label('Tanggal Pelaksanaan Konseling')
-                            ->required()
-                            ->default(now())
-                            ->placeholder('Pilih tanggal konseling')
-                            ->helperText('Pilih tanggal konseling dilaksanakan.')
-                            ->columnSpanFull(),
+                        // DatePicker::make('counseling_date')
+                        //     ->label('Tanggal Pelaksanaan Konseling')
+                        //     ->required()
+                        //     ->default(now())
+                        //     ->placeholder('Pilih tanggal konseling')
+                        //     ->helperText('Pilih tanggal konseling dilaksanakan.')
+                        //     ->columnSpanFull(),
 
                         Select::make('patient_id')
                             ->label('Nama Pasien')
@@ -50,7 +50,6 @@ class CounselingReportsRelationManager extends RelationManager
                                     ->schema([
                                         TextInput::make('nik')
                                             ->label('NIK')
-                                            ->required()
                                             ->maxLength(16)
                                             ->minLength(16)
                                             ->unique()
@@ -100,14 +99,14 @@ class CounselingReportsRelationManager extends RelationManager
 
                                 Forms\Components\Fieldset::make('Alamat')
                                     ->schema([
-                                        Select::make('health_center_id')
-                                            ->label('Puskesmas')
-                                            ->relationship('healthCenter', 'name')
-                                            ->helperText('Pilih tempat puskesmas anda terdaftar.')
-                                            ->placeholder('Pilih puskesmas anda')
-                                            ->searchable()
-                                            ->preload()
-                                            ->columnSpanFull(),
+                                        // Select::make('health_center_id')
+                                        //     ->label('Puskesmas')
+                                        //     ->relationship('healthCenter', 'name')
+                                        //     ->helperText('Pilih tempat puskesmas anda terdaftar.')
+                                        //     ->placeholder('Pilih puskesmas anda')
+                                        //     ->searchable()
+                                        //     ->preload()
+                                        //     ->columnSpanFull(),
 
                                         Textarea::make('address.street')
                                             ->label('Jalan')
@@ -139,6 +138,23 @@ class CounselingReportsRelationManager extends RelationManager
                                             })
                                             ->searchable()
                                             ->columnSpan(1),
+                                        Forms\Components\TextInput::make('address.rt')
+                                            ->label('RT')
+                                            ->maxLength(3)
+                                            ->minLength(3)
+                                            ->placeholder('Masukkan RT (3 digit)')
+                                            ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
+                                            ->numeric()
+                                            ->columnSpan(1),
+
+                                        Forms\Components\TextInput::make('address.rw')
+                                            ->label('RW')
+                                            ->maxLength(3)
+                                            ->minLength(3)
+                                            ->placeholder('Masukkan RW (3 digit)')
+                                            ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
+                                            ->numeric()
+                                            ->columnSpan(1),
                                     ])
                                     ->columns(2)
                                     ->label('Detail Alamat'),
@@ -149,18 +165,18 @@ class CounselingReportsRelationManager extends RelationManager
 
                 Fieldset::make('Detail Konseling')
                     ->schema([
-                        DatePicker::make('home_visit_date')
-                            ->label('Tanggal Kunjungan Rumah')
-                            ->nullable()
-                            ->placeholder('Pilih tanggal kunjungan rumah')
-                            ->helperText('Isi tanggal kunjungan rumah jika pasien dikunjungi di tempat tinggalnya.')
-                            ->columnSpanFull()
-                            ->required(),
+                        // DatePicker::make('home_visit_date')
+                        //     ->label('Tanggal Kunjungan Rumah')
+                        //     ->nullable()
+                        //     ->placeholder('Pilih tanggal kunjungan rumah')
+                        //     ->helperText('Isi tanggal kunjungan rumah jika pasien dikunjungi di tempat tinggalnya.')
+                        //     ->columnSpanFull()
+                        //     ->required(),
 
                         Textarea::make('condition')
                             ->label('Kondisi/Masalah')
                             ->rows(5)
-                            ->maxLength(255)
+                            ->maxLength(1000)
                             ->required()
                             ->placeholder('Jelaskan kondisi atau masalah pasien')
                             ->helperText('Deskripsikan kondisi pasien atau masalah yang dihadapi dengan jelas dan singkat.')
@@ -169,7 +185,7 @@ class CounselingReportsRelationManager extends RelationManager
                         Textarea::make('recommendation')
                             ->label('Saran/Rekomendasi')
                             ->rows(5)
-                            ->maxLength(500)
+                            ->maxLength(1000)
                             ->required()
                             ->placeholder('Masukkan saran atau rekomendasi yang diberikan')
                             ->helperText('Berikan saran atau rekomendasi untuk membantu menyelesaikan masalah pasien.')
@@ -178,7 +194,7 @@ class CounselingReportsRelationManager extends RelationManager
                         Textarea::make('intervention')
                             ->label('Intervensi')
                             ->rows(5)
-                            ->maxLength(500)
+                            ->maxLength(1000)
                             ->placeholder('Masukkan tindakan intervensi jika ada')
                             ->helperText('Tuliskan tindakan yang telah dilakukan untuk membantu pasien, jika ada.')
                             ->columnSpanFull()
@@ -188,7 +204,7 @@ class CounselingReportsRelationManager extends RelationManager
                             ->label('Keterangan')
                             ->rows(5)
                             ->nullable()
-                            ->maxLength(500)
+                            ->maxLength(1000)
                             ->placeholder('Tambahkan keterangan tambahan jika diperlukan')
                             ->helperText('Opsional: Isi keterangan tambahan yang dianggap relevan dengan konseling.')
                             ->columnSpanFull(),
@@ -304,7 +320,8 @@ class CounselingReportsRelationManager extends RelationManager
                 if (in_array($user->role, ['petugas', 'kader'])) {
                     return $query->whereHas('user.healthCenter', function ($q) use ($user) {
                         $q->where('id', $user->health_center_id);
-                    });                }
+                    });
+                }
 
                 // Default, jika role lain
                 return $query->where('id', null); // Tidak menampilkan data apa pun

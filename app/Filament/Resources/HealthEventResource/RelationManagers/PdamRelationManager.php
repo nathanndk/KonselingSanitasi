@@ -33,11 +33,11 @@ class PdamRelationManager extends RelationManager
                         ->description('Masukkan informasi dasar')
                         ->icon('heroicon-o-document')
                         ->schema([
-                            DatePicker::make('sampling_date')
-                                ->label('Tanggal Sampling')
-                                ->placeholder('Pilih tanggal pengambilan sampel')
-                                ->helperText('Masukkan tanggal ketika sampel diambil.')
-                                ->required(),
+                            // DatePicker::make('sampling_date')
+                            //     ->label('Tanggal Sampling')
+                            //     ->placeholder('Pilih tanggal pengambilan sampel')
+                            //     ->helperText('Masukkan tanggal ketika sampel diambil.')
+                            //     ->required(),
 
                             Select::make('patient_id')
                                 ->label('Nama Pasien')
@@ -51,7 +51,6 @@ class PdamRelationManager extends RelationManager
                                         ->schema([
                                             Forms\Components\TextInput::make('nik')
                                                 ->label('NIK')
-                                                ->required()
                                                 ->maxLength(16)
                                                 ->minLength(16)
                                                 ->placeholder('Masukkan NIK 16 digit')
@@ -102,13 +101,13 @@ class PdamRelationManager extends RelationManager
 
                                     Forms\Components\Fieldset::make('Alamat')
                                         ->schema([
-                                            Forms\Components\Select::make('health_center_id')
-                                                ->label('Puskesmas')
-                                                ->relationship('healthCenter', 'name')
-                                                ->placeholder('Pilih puskesmas tempat Anda terdaftar')
-                                                ->searchable()
-                                                ->preload()
-                                                ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
+                                            // Forms\Components\Select::make('health_center_id')
+                                            //     ->label('Puskesmas')
+                                            //     ->relationship('healthCenter', 'name')
+                                            //     ->placeholder('Pilih puskesmas tempat Anda terdaftar')
+                                            //     ->searchable()
+                                            //     ->preload()
+                                            //     ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
 
                                             Forms\Components\Textarea::make('address.street')
                                                 ->label('Jalan')
@@ -137,6 +136,24 @@ class PdamRelationManager extends RelationManager
                                                 ->searchable()
                                                 ->placeholder('Pilih kelurahan')
                                                 ->helperText('Isi dengan kelurahan tempat tinggal Anda.'),
+                                                
+                                            Forms\Components\TextInput::make('address.rt')
+                                                ->label('RT')
+                                                ->maxLength(3)
+                                                ->minLength(3)
+                                                ->placeholder('Masukkan RT (3 digit)')
+                                                ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
+                                                ->numeric()
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('address.rw')
+                                                ->label('RW')
+                                                ->maxLength(3)
+                                                ->minLength(3)
+                                                ->placeholder('Masukkan RW (3 digit)')
+                                                ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
+                                                ->numeric()
+                                                ->columnSpan(1),
                                         ])
                                         ->columns(1)
                                         ->label('Detail Alamat'),

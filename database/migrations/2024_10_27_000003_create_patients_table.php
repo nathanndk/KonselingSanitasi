@@ -19,7 +19,7 @@ class CreatePatientsTable extends Migration
             $table->unsignedSmallInteger('rw')->nullable();
 
             // $table->foreignId('health_center_id')->nullable()->constrained('address');
-            $table->foreignId('event_id')->nullable()->default(null)->constrained('health_events')->cascadeOnDelete();
+            // $table->foreignId('event_id')->nullable()->default(null)->constrained('health_events')->cascadeOnDelete();
             $table->foreignId('address_id')->nullable()->constrained('address');
             $table->foreignId('created_by')->nullable()->default(null)->constrained('users');
             $table->timestamps();
