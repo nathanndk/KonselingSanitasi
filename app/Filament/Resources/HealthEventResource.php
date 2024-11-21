@@ -26,7 +26,7 @@ class HealthEventResource extends Resource
 {
     protected static ?string $model = HealthEvent::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-heart';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
     protected static ?string $navigationGroup = 'Acara Kesehatan';
 

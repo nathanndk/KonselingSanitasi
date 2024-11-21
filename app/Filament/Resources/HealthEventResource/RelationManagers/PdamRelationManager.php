@@ -136,7 +136,7 @@ class PdamRelationManager extends RelationManager
                                                 ->searchable()
                                                 ->placeholder('Pilih kelurahan')
                                                 ->helperText('Isi dengan kelurahan tempat tinggal Anda.'),
-                                                
+
                                             Forms\Components\TextInput::make('address.rt')
                                                 ->label('RT')
                                                 ->maxLength(3)
@@ -313,7 +313,7 @@ class PdamRelationManager extends RelationManager
                     // Step 4: Keterangan
                     Wizard\Step::make('Keterangan')
                         ->description('Tambahkan keterangan')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-clipboard')
                         ->schema([
                             Forms\Components\Textarea::make('notes')
                                 ->label('Keterangan')

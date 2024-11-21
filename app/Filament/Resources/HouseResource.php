@@ -25,7 +25,7 @@ class HouseResource extends Resource
 {
     protected static ?string $model = HousingSurvey::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
+    protected static ?string $navigationIcon = 'heroicon-o-home-modern';
 
     protected static ?string $navigationGroup = 'Laporan';
 

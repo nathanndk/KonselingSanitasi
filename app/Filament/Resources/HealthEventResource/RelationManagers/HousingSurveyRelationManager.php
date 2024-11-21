@@ -227,7 +227,7 @@ class HousingSurveyRelationManager extends RelationManager
                     // Step 2: Rumah Layak
                     Wizard\Step::make('Rumah Layak')
                         ->description('Masukkan informasi rumah layak')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-home-modern')
                         ->schema([
                             // Lokasi Rumah
                             Forms\Components\Section::make('Lokasi Rumah')
@@ -349,7 +349,7 @@ class HousingSurveyRelationManager extends RelationManager
                     // Step 3: Sarana Sanitasi
                     Wizard\Step::make('Sarana Sanitasi')
                         ->description('Masukkan informasi sarana sanitasi')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-shield-exclamation')
                         ->schema([
                             // Ketersediaan Air
                             Forms\Components\Section::make('Ketersediaan Air')
@@ -391,7 +391,7 @@ class HousingSurveyRelationManager extends RelationManager
                     // Step 4: Perilaku
                     Wizard\Step::make('Perilaku')
                         ->description('Masukkan informasi kesehatan lingkungan')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-user')
                         ->schema([
                             Forms\Components\Radio::make('bedroom_window_open')
                                 ->label('1. Jendela kamar tidur selalu dibuka setiap hari')
@@ -405,7 +405,7 @@ class HousingSurveyRelationManager extends RelationManager
 
                     Wizard\Step::make('Hasil Sanitarian Kit')
                         ->description('Masukkan informasi hasil sanitarian kit')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-shield-check')
                         ->schema([
                             Forms\Components\Radio::make('noise_level')
                                 ->label('1. Kebisingan (<85 dBA)')
@@ -420,7 +420,7 @@ class HousingSurveyRelationManager extends RelationManager
                     //Keterangan
                     Wizard\Step::make('Keterangan')
                         ->description('Tambahkan catatan tambahan')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-clipboard')
                         ->schema([
                             Forms\Components\Textarea::make('notes')
                                 ->label('Catatan')
