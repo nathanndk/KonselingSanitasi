@@ -21,9 +21,22 @@ class Patient extends Model
         'event_id',
         'sanitation_condition_id',
         'district_code',
-        'cubdistrict_code',
+        'subdistrict_code',
         'health_center_id'
     ];
+
+    public static function booted()
+    {
+        static::creating(function ($patient) {
+            // Jika NIK kosong, buat NIK otomatis
+            if (empty($patient->nik)) {
+                // Ambil NIK terakhir dan increment
+                $lastNIK = self::orderByDesc('nik')->first()->nik ?? 'NON0000000000000';
+                $newNIK = 'NON' . str_pad((intval(substr($lastNIK, 3)) + 1), 13, '0', STR_PAD_LEFT);
+                $patient->nik = $newNIK;  // Set NIK baru
+            }
+        });
+    }
 
     public function address()
     {
@@ -47,12 +60,12 @@ class Patient extends Model
 
     public function district()
     {
-        return $this->belongsTo(District::class, 'district_id');
+        return $this->belongsTo(District::class, 'district_code');
     }
 
     public function subdistrict()
     {
-        return $this->belongsTo(Subdistrict::class, 'subdistrict_id');
+        return $this->belongsTo(Subdistrict::class, 'subdistrict_code');
     }
 
     public function event()
@@ -62,6 +75,11 @@ class Patient extends Model
 
     public function healthCenter()
     {
-        return $this->belongsTo(HealthCenter::class,'health_center_id');
+        return $this->belongsTo(HealthCenter::class, 'health_center_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

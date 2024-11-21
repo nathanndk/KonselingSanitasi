@@ -88,7 +88,15 @@ class PdamRelationManager extends RelationManager
                                                 ->maxLength(15)
                                                 ->placeholder('Masukkan nomor telepon aktif')
                                                 ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.'),
+
+                                            Forms\Components\Hidden::make('created_by')
+                                                ->default(fn() => Auth::id()),
+
+                                            Forms\Components\Hidden::make('updated_by')
+                                                ->default(fn() => Auth::id())
+                                                ->dehydrated(false)
                                         ])
+
                                         ->columns(1)
                                         ->label('Informasi Personal'),
 
@@ -173,50 +181,116 @@ class PdamRelationManager extends RelationManager
                                 ->helperText('Isi dengan hasil pengukuran suhu air.'),
                         ]),
 
-                    // Step 3: Hasil Pemeriksaan Lab
                     Wizard\Step::make('Hasil Pemeriksaan Lab')
                         ->description('Masukkan hasil pemeriksaan laboratorium')
                         ->icon('heroicon-o-beaker')
                         ->schema([
-                            Forms\Components\TextInput::make('odor')
-                                ->label('Bau')
-                                ->placeholder('Masukkan deskripsi bau')
-                                ->helperText('Isi dengan hasil pengamatan bau air.'),
+                            // Mikrobiologi
+                            Forms\Components\Fieldset::make('Mikrobiologi')
+                                ->schema([
+                                    Forms\Components\TextInput::make('total_coliform')
+                                        ->label('Total Coliform')
+                                        ->placeholder('Masukkan nilai Total Coliform')
+                                        ->helperText('Isi dengan hasil tes Total Coliform.'),
 
-                            Forms\Components\TextInput::make('temperature_measurement')
-                                ->label('Suhu Lab')
-                                ->placeholder('Masukkan suhu di laboratorium')
-                                ->helperText('Isi dengan hasil pengukuran suhu dari lab.'),
+                                    Forms\Components\TextInput::make('e_coli')
+                                        ->label('E.Coli')
+                                        ->placeholder('Masukkan nilai E.Coli')
+                                        ->helperText('Isi dengan hasil tes E.Coli.'),
+                                ]),
 
-                            Forms\Components\TextInput::make('fluoride')
-                                ->label('Florida')
-                                ->placeholder('Masukkan nilai Florida')
-                                ->helperText('Isi dengan hasil tes kadar Fluoride.'),
+                            // Fisika
+                            Forms\Components\Fieldset::make('Fisika')
+                                ->schema([
+                                    Forms\Components\TextInput::make('tds')
+                                        ->label('TDS')
+                                        ->placeholder('Masukkan nilai TDS')
+                                        ->helperText('Isi dengan hasil tes TDS.'),
 
-                            Forms\Components\TextInput::make('iron')
-                                ->label('Besi')
-                                ->placeholder('Masukkan nilai Besi')
-                                ->helperText('Isi dengan hasil tes kadar Besi.'),
+                                    Forms\Components\TextInput::make('kekeruhan')
+                                        ->label('Kekeruhan')
+                                        ->placeholder('Masukkan nilai Kekeruhan')
+                                        ->helperText('Isi dengan hasil tes Kekeruhan.'),
 
-                            Forms\Components\TextInput::make('lead')
-                                ->label('Timbal')
-                                ->placeholder('Masukkan nilai Timbal')
-                                ->helperText('Isi dengan hasil tes kadar Timbal.'),
+                                    Forms\Components\TextInput::make('warna')
+                                        ->label('Warna')
+                                        ->placeholder('Masukkan nilai Warna')
+                                        ->helperText('Isi dengan hasil tes Warna.'),
 
-                            Forms\Components\TextInput::make('manganese')
-                                ->label('Mangan')
-                                ->placeholder('Masukkan nilai Mangan')
-                                ->helperText('Isi dengan hasil tes kadar Mangan.'),
+                                    Forms\Components\TextInput::make('bau')
+                                        ->label('Bau')
+                                        ->placeholder('Masukkan deskripsi Bau')
+                                        ->helperText('Isi dengan hasil pengamatan bau air.'),
 
-                            Forms\Components\TextInput::make('nitrite')
-                                ->label('Nitrit')
-                                ->placeholder('Masukkan nilai Nitrit')
-                                ->helperText('Isi dengan hasil tes kadar Nitrit.'),
+                                    Forms\Components\TextInput::make('suhu')
+                                        ->label('Suhu')
+                                        ->placeholder('Masukkan suhu di laboratorium')
+                                        ->helperText('Isi dengan hasil pengukuran suhu dari lab.'),
+                                ]),
 
-                            Forms\Components\TextInput::make('nitrate')
-                                ->label('Nitrat')
-                                ->placeholder('Masukkan nilai Nitrat')
-                                ->helperText('Isi dengan hasil tes kadar Nitrat.'),
+                            // Kimia
+                            Forms\Components\Fieldset::make('Kimia')
+                                ->schema([
+                                    Forms\Components\TextInput::make('aluminium')
+                                        ->label('Al (Aluminium)')
+                                        ->placeholder('Masukkan nilai Aluminium')
+                                        ->helperText('Isi dengan hasil tes kadar Aluminium.'),
+
+                                    Forms\Components\TextInput::make('arsen')
+                                        ->label('Arsen')
+                                        ->placeholder('Masukkan nilai Arsen')
+                                        ->helperText('Isi dengan hasil tes kadar Arsen.'),
+
+                                    Forms\Components\TextInput::make('kadmium')
+                                        ->label('Kadmium')
+                                        ->placeholder('Masukkan nilai Kadmium')
+                                        ->helperText('Isi dengan hasil tes kadar Kadmium.'),
+
+                                    Forms\Components\TextInput::make('sisa_khlor')
+                                        ->label('Sisa Khlor')
+                                        ->placeholder('Masukkan nilai Sisa Khlor')
+                                        ->helperText('Isi dengan hasil tes kadar Sisa Khlor.'),
+
+                                    Forms\Components\TextInput::make('chrom_val_6')
+                                        ->label('Crom Val 6')
+                                        ->placeholder('Masukkan nilai Crom Val 6')
+                                        ->helperText('Isi dengan hasil tes kadar Crom Val 6.'),
+
+                                    Forms\Components\TextInput::make('fluoride')
+                                        ->label('Florida')
+                                        ->placeholder('Masukkan nilai Fluoride')
+                                        ->helperText('Isi dengan hasil tes kadar Fluoride.'),
+
+                                    Forms\Components\TextInput::make('besi')
+                                        ->label('Besi')
+                                        ->placeholder('Masukkan nilai Besi')
+                                        ->helperText('Isi dengan hasil tes kadar Besi.'),
+
+                                    Forms\Components\TextInput::make('timbal')
+                                        ->label('Timbal')
+                                        ->placeholder('Masukkan nilai Timbal')
+                                        ->helperText('Isi dengan hasil tes kadar Timbal.'),
+
+                                    Forms\Components\TextInput::make('mangan')
+                                        ->label('Mangan')
+                                        ->placeholder('Masukkan nilai Mangan')
+                                        ->helperText('Isi dengan hasil tes kadar Mangan.'),
+
+                                    Forms\Components\TextInput::make('nitrite')
+                                        ->label('Nitrit')
+                                        ->placeholder('Masukkan nilai Nitrit')
+                                        ->helperText('Isi dengan hasil tes kadar Nitrit.'),
+
+                                    Forms\Components\TextInput::make('nitrate')
+                                        ->label('Nitrat')
+                                        ->placeholder('Masukkan nilai Nitrat')
+                                        ->helperText('Isi dengan hasil tes kadar Nitrat.'),
+
+                                    Forms\Components\TextInput::make('ph')
+                                        ->label('pH')
+                                        ->placeholder('Masukkan nilai pH')
+                                        ->helperText('Isi dengan hasil tes kadar pH air.')
+                                ])
                         ]),
 
                     // Step 4: Keterangan
@@ -409,7 +483,8 @@ class PdamRelationManager extends RelationManager
                 if (in_array($user->role, ['petugas', 'kader'])) {
                     return $query->whereHas('user.healthCenter', function ($q) use ($user) {
                         $q->where('id', $user->health_center_id);
-                    });                }
+                    });
+                }
 
                 // Default, jika role lain
                 return $query->where('id', null); // Tidak menampilkan data apa pun

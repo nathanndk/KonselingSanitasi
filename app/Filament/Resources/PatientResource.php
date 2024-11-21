@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Select;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class PatientResource extends Resource
 {
@@ -39,7 +41,6 @@ class PatientResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('nik')
                             ->label('NIK')
-                            ->required()
                             ->maxLength(16)
                             ->minLength(16)
                             ->placeholder('Masukkan NIK 16 digit')
@@ -87,15 +88,6 @@ class PatientResource extends Resource
                 // Fieldset untuk Informasi Alamat
                 Forms\Components\Fieldset::make('Alamat')
                     ->schema([
-                        Forms\Components\Select::make('health_center_id')
-                            ->label('Puskesmas')
-                            ->relationship('healthCenter', 'name')
-                            ->helperText('Pilih tempat puskesmas anda terdaftar.')
-                            ->placeholder('Pilih puskesmas anda')
-                            ->searchable()
-                            ->preload()
-                            ->columnSpanFull(),
-
                         Forms\Components\Textarea::make('address.street')
                             ->label('Jalan')
                             ->placeholder('Masukkan nama jalan tempat anda tinggal saat ini')
@@ -127,154 +119,86 @@ class PatientResource extends Resource
                             })
                             ->searchable()
                             ->columnSpan(1),
+
+                        // Field untuk RT dan RW
+                        Forms\Components\TextInput::make('address.rt')
+                            ->label('RT')
+                            ->maxLength(3)  // Membatasi RT menjadi 3 digit
+                            ->minLength(3)
+                            ->placeholder('Masukkan RT (3 digit)')
+                            ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
+                            ->numeric()
+                            ->columnSpan(1),
+
+                        Forms\Components\TextInput::make('address.rw')
+                            ->label('RW')
+                            ->maxLength(3)  // Membatasi RW menjadi 3 digit
+                            ->minLength(3)
+                            ->placeholder('Masukkan RW (3 digit)')
+                            ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
+                            ->numeric()
+                            ->columnSpan(1),
                     ])
                     ->columns(2)
                     ->label('Detail Alamat'),
-
-                // Fieldset untuk Informasi Kesehatan
-                Forms\Components\Fieldset::make('Informasi Kesehatan (opsional)')
-                    ->schema([
-                        Forms\Components\TextInput::make('fasting_blood_sugar')
-                            ->label('Gula Darah Puasa (mg/dL)')
-                            ->numeric()
-                            ->maxLength(5)
-                            ->placeholder('Masukkan nilai dalam mg/dL')
-                            ->helperText('Isi dengan hasil tes gula darah setelah puasa minimal 8 jam.')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('postprandial_blood_sugar')
-                            ->label('Gula Darah 2 jam PP (mg/dL)')
-                            ->numeric()
-                            ->maxLength(5)
-                            ->placeholder('Masukkan nilai dalam mg/dL')
-                            ->helperText('Isi dengan hasil tes gula darah 2 jam setelah makan.')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('hba1c')
-                            ->label('HbA1c (%)')
-                            ->numeric()
-                            ->maxLength(4)
-                            ->placeholder('Masukkan nilai dalam persen')
-                            ->helperText('Isi dengan nilai rata-rata gula darah dalam 2-3 bulan terakhir.')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('blood_sugar')
-                            ->label('Gula Darah')
-                            ->numeric()
-                            ->maxLength(5)
-                            ->placeholder('Masukkan nilai dalam mg/dL')
-                            ->helperText('Isi dengan hasil tes gula darah sewaktu tanpa persyaratan khusus.')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('cholesterol')
-                            ->label('Kolesterol (mg/dL)')
-                            ->numeric()
-                            ->maxLength(5)
-                            ->placeholder('Masukkan nilai dalam mg/dL')
-                            ->helperText('Isi dengan hasil tes kadar kolesterol total dalam darah.')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('hdl')
-                            ->label('Lemak Darah HDL (mg/dL)')
-                            ->numeric()
-                            ->maxLength(5)
-                            ->placeholder('Masukkan nilai dalam mg/dL')
-                            ->helperText('Isi dengan hasil tes kadar lemak darah jenis HDL (lemak baik).')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('ldl')
-                            ->label('Lemak Darah LDL (mg/dL)')
-                            ->numeric()
-                            ->maxLength(5)
-                            ->placeholder('Masukkan nilai dalam mg/dL')
-                            ->helperText('Isi dengan hasil tes kadar lemak darah jenis LDL (lemak jahat).')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('triglycerides')
-                            ->label('Trigliserida (mg/dL)')
-                            ->numeric()
-                            ->maxLength(5)
-                            ->placeholder('Masukkan nilai dalam mg/dL')
-                            ->helperText('Isi dengan hasil tes kadar trigliserida dalam darah.')
-                            ->columnSpanFull(),
-                    ])
-                    ->columnSpanFull(),
             ]);
     }
-
-
 
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                TextColumn::make('nik')->label('NIK')
+                TextColumn::make('nik')
+                    ->label('NIK')
                     ->searchable()
                     ->sortable()
                     ->default('-'),
-                TextColumn::make('name')->label('Nama')
+
+                TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable()
                     ->sortable()
                     ->default('-'),
+
                 TextColumn::make('date_of_birth')
                     ->label('Tanggal Lahir')
                     ->date('d F Y')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->default('-'),
+
                 TextColumn::make('gender')
                     ->label('Jenis Kelamin')
                     ->formatStateUsing(function ($state) {
                         return $state === 'L' ? 'Laki-laki' : ($state === 'P' ? 'Perempuan' : '-');
                     })
                     ->default('-'),
+
                 TextColumn::make('phone_number')
                     ->label('Nomor Telepon')
                     ->searchable()
                     ->default('-'),
+
                 TextColumn::make('address.street')
                     ->label('Alamat')
                     ->searchable()
                     ->default('-'),
 
-                // Kolom tambahan untuk atribut kesehatan
-                TextColumn::make('fasting_blood_sugar')
-                    ->label('Gula Darah Puasa (mg/dL)')
-                    ->toggleable(isToggledHiddenByDefault: true)
+                TextColumn::make('address.district_code')
+                    ->label('Kecamatan')
+                    ->searchable()
                     ->default('-'),
 
-                TextColumn::make('postprandial_blood_sugar')
-                    ->label('Gula Darah 2 jam PP (mg/dL)')
-                    ->toggleable(isToggledHiddenByDefault: true)
+                TextColumn::make('address.subdistrict_code')
+                    ->label('Kelurahan')
+                    ->searchable()
                     ->default('-'),
 
-                TextColumn::make('hba1c')
-                    ->label('HbA1c (%)')
-                    ->toggleable(isToggledHiddenByDefault: true)
+                TextColumn::make('address.rt')
+                    ->label('RT')
                     ->default('-'),
 
-                TextColumn::make('blood_sugar')
-                    ->label('Gula Darah')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->default('-'),
-
-                TextColumn::make('cholesterol')
-                    ->label('Kolesterol (mg/dL)')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->default('-'),
-
-                TextColumn::make('hdl')
-                    ->label('Lemak Darah HDL (mg/dL)')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->default('-'),
-
-                TextColumn::make('ldl')
-                    ->label('Lemak Darah LDL (mg/dL)')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->default('-'),
-
-                TextColumn::make('triglycerides')
-                    ->label('Trigliserida (mg/dL)')
-                    ->toggleable(isToggledHiddenByDefault: true)
+                TextColumn::make('address.rw')
+                    ->label('RW')
                     ->default('-'),
 
                 TextColumn::make('created_at')
@@ -289,6 +213,31 @@ class PatientResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->default('-'),
             ])
+            ->modifyQueryUsing(function (Builder $query) {
+                $user = Auth::user();
+
+                // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
+                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                    return $query;
+                }
+
+                // Jika puskesmas, hanya melihat data yang terkait dengan puskesmas mereka
+                if ($user->role === 'puskesmas') {
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });
+                }
+
+                // Jika petugas atau kader, hanya melihat data yang mereka buat
+                if (in_array($user->role, ['petugas', 'kader'])) {
+                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                        $q->where('id', $user->health_center_id);
+                    });
+                }
+
+                // Default, jika role lain
+                return $query->where('id', null); // Tidak menampilkan data apa pun
+            })
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
