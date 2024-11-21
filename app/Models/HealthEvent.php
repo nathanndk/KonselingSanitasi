@@ -65,4 +65,8 @@ class HealthEvent extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function healthCenter(){
+        return $this->belongsTo(HealthCenter::class, 'health_center_id');
+    }
+
 }

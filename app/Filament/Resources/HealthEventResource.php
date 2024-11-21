@@ -7,7 +7,6 @@ use App\Filament\Resources\HealthEventResource\RelationManagers\CounselingReport
 use App\Filament\Resources\HealthEventResource\RelationManagers\HousingSurveyRelationManager;
 use App\Filament\Resources\HealthEventResource\RelationManagers\PdamRelationManager;
 use App\Models\HealthEvent;
-use App\Models\Patient;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -19,6 +18,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Card;
+use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -48,6 +48,16 @@ class HealthEventResource extends Resource
                     ->schema([
                         Forms\Components\Fieldset::make('Detail Acara Kesehatan')
                             ->schema([
+                                Select::make('health_center_id')
+                                    ->label('Puskesmas')
+                                    ->relationship('healthCenter', 'name')  // Ensure 'healthCenter' is the correct relationship method in your HealthEvent model
+                                    ->helperText('Pilih tempat puskesmas anda terdaftar.')
+                                    ->placeholder('Pilih puskesmas anda')
+                                    ->searchable()
+                                    ->preload()
+                                    ->columnSpanFull()
+                                    ->hidden(fn() => Auth::user()->role !== 'admin'),
+
                                 TextInput::make('title')
                                     ->label('Judul Acara')
                                     ->required()

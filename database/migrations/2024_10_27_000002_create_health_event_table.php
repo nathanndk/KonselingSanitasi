@@ -16,9 +16,12 @@ class CreateHealthEventTable extends Migration
             $table->dateTime('end_time');
             $table->dateTime('event_date');
 
-            $table->foreignId('created_by')->nullable()->constrained('users');
-            $table->foreignId('updated_by')->nullable()->constrained('users');
-            $table->timestamps();
+            // Foreign keys
+            $table->foreignId('health_center_id')->nullable()->constrained('address');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null'); // If user is deleted, set this to null
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null'); // If user is deleted, set this to null
+
+            $table->timestamps(); // created_at and updated_at will be automatically managed
         });
     }
 
