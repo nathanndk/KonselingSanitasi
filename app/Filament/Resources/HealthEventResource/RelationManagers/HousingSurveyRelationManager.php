@@ -553,9 +553,21 @@ class HousingSurveyRelationManager extends RelationManager
             })
             ->headerActions([
                 Tables\Actions\CreateAction::make()
+                    ->label('Buat Formulir Rumah Sehat')
+                    ->modalHeading('Buat Formulir Rumah Sehat')
+                    ->modalButton('Buat Formulir')
                     ->mutateFormDataUsing(function (array $data): array {
+                        $event = \App\Models\HealthEvent::find($data['event_id'] ?? null);
+
+                        if ($event) {
+                            $data['sampling_date'] = $event->start_date; // Set sampling_date dari event
+                        } else {
+                            $data['sampling_date'] = now(); // Set nilai default jika event tidak ditemukan
+                        }
+
                         $data['created_by'] = Auth::id();
                         $data['updated_by'] = Auth::id();
+
                         return $data;
                     }),
             ])

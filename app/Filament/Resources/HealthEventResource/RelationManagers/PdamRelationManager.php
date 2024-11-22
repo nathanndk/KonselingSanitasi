@@ -508,11 +508,24 @@ class PdamRelationManager extends RelationManager
             })
             ->headerActions([
                 Tables\Actions\CreateAction::make()
+                    ->label('Buat Formulir PDAM')
+                    ->modalHeading('Buat Formulir PDAM')
+                    ->modalButton('Buat Formulir')
                     ->mutateFormDataUsing(function (array $data): array {
+                        $event = \App\Models\HealthEvent::find($data['event_id'] ?? null);
+
+                        if ($event) {
+                            $data['sampling_date'] = $event->start_date; // Set sampling_date dari event
+                        } else {
+                            $data['sampling_date'] = now(); // Set nilai default jika event tidak ditemukan
+                        }
+
                         $data['created_by'] = Auth::id();
                         $data['updated_by'] = Auth::id();
+
                         return $data;
                     }),
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

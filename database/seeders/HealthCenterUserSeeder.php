@@ -20,7 +20,8 @@ class HealthCenterUserSeeder extends Seeder
                 Str::slug($healthCenter->name, '_') . '@puskesmas.com', // Email
                 Str::slug($healthCenter->name, '_'), // Username
                 RoleUser::Puskesmas->value, // Role Enum Value
-                $healthCenter->id // Health Center ID
+                $healthCenter->id, // Health Center ID
+                $healthCenter->name // Health Center name
             );
         }
     }
@@ -33,13 +34,14 @@ class HealthCenterUserSeeder extends Seeder
      * @param string $username
      * @param string $roleEnumValue
      * @param int|null $healthCenterId
+     * @param string $healthCenterName
      * @return void
      */
-    private function createUserWithRole($role, $email, $username, $roleEnumValue, $healthCenterId = null)
+    private function createUserWithRole($role, $email, $username, $roleEnumValue, $healthCenterId = null, $healthCenterName)
     {
         $user = User::factory()->create([
             'username' => $username,
-            'name' => ucfirst($role) . ' User',
+            'name' => 'Puskesmas ' . $healthCenterName,
             'email' => $email,
             'password' => bcrypt('password'),
             'role' => $roleEnumValue,
@@ -49,6 +51,6 @@ class HealthCenterUserSeeder extends Seeder
             'health_center_id' => $healthCenterId,
         ]);
 
-        $user->assignRole($role); // Assign role to the user
+        $user->assignRole($role);
     }
 }

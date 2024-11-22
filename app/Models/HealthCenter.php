@@ -18,7 +18,7 @@ class HealthCenter extends Model
         return $this->belongsTo(Address::class);
     }
 
-    public function users()
+    public function user()
     {
         return $this->hasMany(User::class);
     }

@@ -32,7 +32,7 @@ class HealthEventResource extends Resource
 
     public static function getPluralLabel(): string
     {
-        return 'Jadwal Acara';
+        return 'Jadwal Acara Kesehatan';
     }
 
     public static function getNavigationLabel(): string
@@ -56,6 +56,7 @@ class HealthEventResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->columnSpanFull()
+                                    ->required()
                                     ->hidden(fn() => Auth::user()->role !== 'admin'),
 
                                 TextInput::make('title')
@@ -138,21 +139,29 @@ class HealthEventResource extends Resource
                     return $query;
                 }
 
-                // Jika puskesmas, hanya melihat data yang terkait dengan puskesmas mereka
-                if ($user->role === 'puskesmas') {
-                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
-                        $q->where('id', $user->health_center_id);
+                // Jika puskesmas, hanya melihat data terkait dengan health_center_id mereka
+                if (in_array($user->role, ['puskesmas','petugas', 'kader'])) {
+                    return $query->where(function ($q) use ($user) {
+                        $q->whereHas('user.healthCenter', function ($subQuery) use ($user) {
+                            $subQuery->where('id', $user->health_center_id);
+                        })
+                        ->orWhereHas('healthCenter', function ($subQuery) use ($user) {
+                            $subQuery->where('id', $user->health_center_id);
+                        });
                     });
                 }
 
-                // Jika petugas atau kader, hanya melihat data yang mereka buat dan sesuai dengan health_center_id mereka
-                if (in_array($user->role, ['petugas', 'kader'])) {
-                    return $query
-                        // ->where('created_by', $user->id)  // Menampilkan hanya data yang dibuat oleh pengguna yang login
-                        ->whereHas('user.healthCenter', function ($q) use ($user) {
-                            $q->where('id', $user->health_center_id); // Memastikan data tersebut terkait dengan health_center_id pengguna
-                        });
-                }
+                // // Jika petugas atau kader, hanya melihat data dengan health_center_id yang sama
+                // if (in_array($user->role, ['petugas', 'kader'])) {
+                //     return $query->where(function ($q) use ($user) {
+                //         $q->whereHas('user.healthCenter', function ($subQuery) use ($user) {
+                //             $subQuery->where('id', $user->health_center_id);
+                //         })
+                //         ->orWhereHas('healthCenter', function ($subQuery) use ($user) {
+                //             $subQuery->where('id', $user->health_center_id);
+                //         });
+                //     });
+                // }
 
                 // Default, jika role lain
                 return $query->where('id', null); // Tidak menampilkan data apa pun

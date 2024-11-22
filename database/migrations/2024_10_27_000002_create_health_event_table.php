@@ -17,7 +17,7 @@ class CreateHealthEventTable extends Migration
             $table->dateTime('event_date');
 
             // Foreign keys
-            $table->foreignId('health_center_id')->nullable()->constrained('address');
+            $table->unsignedBigInteger('health_center_id')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null'); // If user is deleted, set this to null
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null'); // If user is deleted, set this to null
 

@@ -30,8 +30,16 @@ class Login extends BaseAuth
             ->required()
             ->autocomplete()
             ->autofocus()
-            ->extraInputAttributes(['tabindex' => 1]);
+            ->extraInputAttributes(['tabindex' => 1])
+            ->placeholder(__('Masukkan nama pengguna'))
+            ->helperText(__('Masukkan nama pengguna Anda untuk masuk.'))
+            ->validationMessages([
+                'required' => __('Username wajib diisi.'),
+                'min' => __('Username harus terdiri dari minimal :min karakter.'),
+                'max' => __('Username tidak boleh lebih dari :max karakter.'),
+            ]);
     }
+
 
     protected function getCredentialsFromFormData(array $data): array
     {

@@ -199,8 +199,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DistrictSeeder::class,
             SubdistrictSeeder::class,
-                // HealthEventSeeder::class,
-            AddressSeeder::class,
+            // HealthEventSeeder::class,
+            // AddressSeeder::class,
             // PdamConditionSeeder::class,
             // PdamParameterCategorySeeder::class,
             // PDAMParameterSeeder::class,

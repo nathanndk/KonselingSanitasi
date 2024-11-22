@@ -15,6 +15,11 @@ class CreateHealthEvent extends CreateRecord
         $data['created_by'] = Auth::id();
         $data['updated_by'] = Auth::id();
 
+        // Menambahkan health_center_id hanya jika role user adalah 'puskesmas'
+        if (Auth::user()->role === 'puskesmas') {
+            $data['health_center_id'] = Auth::user()->health_center_id;
+        }
+
         return $data;
     }
 

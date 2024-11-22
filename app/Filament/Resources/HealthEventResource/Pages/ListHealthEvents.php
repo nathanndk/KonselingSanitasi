@@ -20,11 +20,19 @@ class ListHealthEvents extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-            ->mutateFormDataUsing(function (array $data): array {
-                $data['created_by'] = Auth::id();
-                $data['updated_by'] = Auth::id();
-                return $data;
-            }),
+                ->label('Buat Jadwal Acara')
+                ->modalHeading('Buat Jadwal Acara')
+                ->modalButton('Buat Jadwal')
+                ->mutateFormDataUsing(function (array $data): array {
+                    if (Auth::user()->role === 'puskesmas') {
+                        $data['health_center_id'] = Auth::user()->health_center_id;
+                    }
+
+
+                    $data['created_by'] = Auth::id();
+                    $data['updated_by'] = Auth::id();
+                    return $data;
+                }),
         ];
     }
     protected function getHeaderWidgets(): array

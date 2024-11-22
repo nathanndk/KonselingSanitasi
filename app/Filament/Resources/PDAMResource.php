@@ -32,7 +32,7 @@ class PDAMResource extends Resource
 
     public static function getPluralLabel(): string
     {
-        return 'PDAM';
+        return 'Formulir PDAM';
     }
 
     public static function getNavigationLabel(): string
@@ -440,8 +440,8 @@ class PDAMResource extends Resource
             ->headerActions([
                 ActionsExportAction::make()
                     ->exporter(PdamExporter::class)
-                    ->label('Print Form PDAM')
-                    ->modalHeading('Print Form PDAM')
+                    ->label('Cetak Formulir PDAM')
+                    ->modalHeading('Cetak Formulir PDAM')
                     ->modalButton('Print')
                     ->columnMapping(false)
             ])

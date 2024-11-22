@@ -17,17 +17,6 @@ class PatientStatsOverview extends BaseWidget
         // Periksa role dan filter data berdasarkan aturan
         $query = Patient::query();
 
-        if ($user->role === 'admin' || $user->role === 'Dinas Kesehatan') {
-            // Admin dan Dinas Kesehatan dapat melihat semua data
-            $query = $query;
-        } elseif ($user->role === 'puskesmas') {
-            // Puskesmas hanya melihat pasien yang ada di puskesmas mereka (menggunakan health_center_id)
-            $query = $query->where('health_center_id', $user->health_center_id);
-        } elseif ($user->role === 'petugas' || $user->role === 'kader') {
-            // Petugas dan Kader hanya melihat pasien yang mereka buat
-            $query = $query->where('created_by', $user->id);
-        }
-
         // Hitung statistik
         $totalPatients = $query->count();
         $malePatients = $query->where('gender', 'L')->count();

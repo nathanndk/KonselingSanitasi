@@ -20,4 +20,8 @@ class ViewHealthEvent extends ViewRecord
             PdamRelationManager::class,
         ];
     }
+    public static function getPluralLabel(): string
+    {
+        return 'Lihat Acara Kesehatan';
+    }
 }

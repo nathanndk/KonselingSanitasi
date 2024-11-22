@@ -31,7 +31,7 @@ class HouseResource extends Resource
 
     public static function getPluralLabel(): string
     {
-        return 'Rumah Sehat';
+        return 'Formulir Rumah Sehat';
     }
 
     public static function getNavigationLabel(): string
@@ -633,7 +633,11 @@ class HouseResource extends Resource
             ])
             ->headerActions([
                 ActionsExportAction::make()
-                    ->exporter(HousingSurveyExporter::class),
+                    ->exporter(HousingSurveyExporter::class)
+                    ->label('Cetak Formulir Rumah Sehat')
+                    ->modalHeading('Cetak Formulir Rumah Sehat')
+                    ->modalButton('Print')
+                    ->columnMapping(false),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

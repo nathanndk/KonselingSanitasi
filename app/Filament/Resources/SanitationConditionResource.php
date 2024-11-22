@@ -33,7 +33,7 @@ class SanitationConditionResource extends Resource
 
     public static function getPluralLabel(): string
     {
-        return 'Konseling Sanitasi';
+        return 'Formulir Konseling Sanitasi';
     }
 
     public static function getNavigationLabel(): string
@@ -326,6 +326,10 @@ class SanitationConditionResource extends Resource
             ->headerActions([
                 ExportAction::make()
                     ->exporter(SanitationConditionExporter::class)
+                    ->label('Cetak Formulir Konseling Sanitasi')
+                    ->modalHeading('Cetak Formulir Konseling Sanitasi')
+                    ->modalButton('Print')
+                    ->columnMapping(false),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
