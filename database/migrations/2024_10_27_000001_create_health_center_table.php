@@ -11,8 +11,8 @@ class CreateHealthCenterTable extends Migration
         Schema::create('health_centers', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->string('district_code', 255); // Menggunakan string sesuai kolom di tabel district
-            $table->string('subdistrict_code', 255); // Menggunakan string sesuai kolom di tabel subdistrict
+            $table->string('district_code', 5);
+            $table->string('subdistrict_code', 5);
             $table->timestamps();
 
             // Foreign key constraints

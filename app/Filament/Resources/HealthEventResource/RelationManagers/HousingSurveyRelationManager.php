@@ -41,7 +41,9 @@ class HousingSurveyRelationManager extends RelationManager
                                 ->label('Nama Pasien')
                                 ->searchable()
                                 ->relationship('patient', 'name')
+                                ->required()
                                 ->preload()
+                                ->helperText('Pilih pasien dari daftar. Anda juga dapat menambahkan pasien baru.')
                                 ->createOptionForm([
                                     Forms\Components\Fieldset::make('Informasi Personal')
                                         ->schema([
@@ -83,7 +85,16 @@ class HousingSurveyRelationManager extends RelationManager
                                                 ->maxLength(15)
                                                 ->placeholder('Masukkan nomor telepon aktif')
                                                 ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.'),
+
+                                            Forms\Components\Hidden::make('created_by')
+                                                ->default(fn() => Auth::id()),
+
+                                            Forms\Components\Hidden::make('updated_by')
+                                                ->default(fn() => Auth::id())
+                                                ->dehydrated(false)
                                         ])
+
+                                        ->columns(1)
                                         ->label('Informasi Personal'),
 
                                     Forms\Components\Fieldset::make('Alamat')
@@ -142,11 +153,12 @@ class HousingSurveyRelationManager extends RelationManager
                                                 ->numeric()
                                                 ->columnSpan(1),
                                         ])
+                                        ->columns(1)
                                         ->label('Detail Alamat'),
                                 ]),
 
                             Forms\Components\TextInput::make('diagnosed_disease')
-                                ->label('Penyakit yang Didiagnosis')
+                                ->label('Dalam 1 bulan terakhir apakah ada anggota rumah tangga yang pernah di diagnosis menderita (Diare/DBD/Leptospirosis/Stunting/TBC/Ispa/Pneumonia/Scabies) ')
                                 ->placeholder('Tulis nama penyakitnya jika ada')
                                 ->maxLength(100)
                                 ->helperText('Isi nama penyakit yang didiagnosis dokter jika ada.'),
@@ -213,6 +225,7 @@ class HousingSurveyRelationManager extends RelationManager
                                 ->options([
                                     'rumah_sendiri' => 'Rumah Sendiri',
                                     'kontrak' => 'Rumah Kontrak',
+                                    'orang_tua' => 'Rumah Orang Tua',
                                 ])
                                 ->placeholder('Pilih status kepemilikan rumah')
                                 ->helperText('Pilih apakah rumah dimiliki sendiri atau sewa.'),
@@ -317,7 +330,7 @@ class HousingSurveyRelationManager extends RelationManager
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('ceiling_height_minimum')
-                                        ->label('18. Tinggi langit-langit minimum 2,4 m')
+                                        ->label('18. Tinggi langit-langit minimum 2,4 m²')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
 
@@ -337,16 +350,56 @@ class HousingSurveyRelationManager extends RelationManager
                             Forms\Components\Section::make('Lantai Rumah')
                                 ->schema([
                                     Forms\Components\Radio::make('floor_waterproof')
-                                        ->label('21. Lantai bangunan kedap air')
+                                        ->label('1. Lantai bangunan kedap air')
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('floor_smooth_no_cracks')
-                                        ->label('22. Permukaan rata, halus, tidak licin, dan tidak retak')
+                                        ->label('2. Permukaan rata, halus, tidak licin, dan tidak retak')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_dust_resistant')
+                                        ->label('3. Lantai tidak menyerap debu dan mudah dibersihkan')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_sloped_for_cleaning')
+                                        ->label('4. Lantai yang kontak dengan air dan memiliki kemiringan cukup landai untuk memudahkan pembersihan dan tidak terjadi genangan air')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_clean')
+                                        ->label('5. Lantai rumah dalam keadaan bersih')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_light_color')
+                                        ->label('6. Warna lantai harus berwarna terang')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
+
+                            // Ventilasi Rumah
+                            Forms\Components\Section::make('Ventilasi Rumah')
+                                ->schema([
+                                    Forms\Components\Radio::make('ventilation_present')
+                                        ->label('1. Ada ventilasi rumah')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('ventilation_area')
+                                        ->label('2. Luas ventilasi permanen > 10% luas lantai')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Pencahayaan Rumah
+                            Forms\Components\Section::make('Pencahayaan Rumah')
+                                ->schema([
+                                    Forms\Components\Radio::make('lighting_present')
+                                        ->label('1. Ada pencahayaan rumah')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('lighting_brightness')
+                                        ->label('2. Terang, tidak silau sehingga dapat untuk baca dengan normal')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ])
+
                         ]),
 
-                    // Step 3: Sarana Sanitasi
                     Wizard\Step::make('Sarana Sanitasi')
                         ->description('Masukkan informasi sarana sanitasi')
                         ->icon('heroicon-o-shield-exclamation')
@@ -361,17 +414,33 @@ class HousingSurveyRelationManager extends RelationManager
                                     Forms\Components\Radio::make('drinking_water_location')
                                         ->label('2. Lokasi sumber Air Minum berada di dalam sarana bangunan/on premises')
                                         ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_supply_hrs')
+                                        ->label('3. Tidak mengalami kesulitan pasokan air selama 24 jam')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_quality')
+                                        ->label('4. Kualitas air memenuhi SBMKL dan Persyaratan Kesehatan air sesuai ketentuan yang berlaku')
+                                        ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
 
                             // Toilet/Sanitasi
                             Forms\Components\Section::make('Toilet/Sanitasi')
                                 ->schema([
                                     Forms\Components\Radio::make('toilet_usage')
-                                        ->label('3. Buang Air Besar di Jamban')
+                                        ->label('5. Buang Air Besar di Jamban')
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('own_toilet')
-                                        ->label('4. Jamban milik sendiri')
+                                        ->label('6. Jamban milik sendiri')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('squat_toilet')
+                                        ->label('7. Kloset Leher Angsa')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('septic_tank')
+                                        ->label('8. Tangki septik disedot setidaknya sekali dalam 3-5 tahun terakhir atau disalurkan ke Sistem Pengolahan Air Limbah Domestik Terpusat (SPAL-DT)')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
 
@@ -379,18 +448,58 @@ class HousingSurveyRelationManager extends RelationManager
                             Forms\Components\Section::make('Sarana CTPS')
                                 ->schema([
                                     Forms\Components\Radio::make('ctps_facility')
-                                        ->label('5. Memiliki sarana CTPS dengan air mengalir dilengkapi dengan sabun')
+                                        ->label('10. Memiliki sarana CTPS dengan air mengalir dilengkapi dengan sabun')
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('ctps_accessibility')
-                                        ->label('6. Lokasi sarana CTPS mudah dijangkau pada saat Waktu-waktu kritis CTPS')
+                                        ->label('11. Lokasi sarana CTPS mudah dijangkau pada saat Waktu-waktu kritis CTPS')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Tempat Pengelolaan Sampah Rumah Tangga
+                            Forms\Components\Section::make('Tempat Pengelolaan Sampah Rumah Tangga')
+                                ->schema([
+                                    Forms\Components\Radio::make('trash_bin_available')
+                                        ->label('12. Tersedia tempat sampah di ruangan, kuat dan mudah dibersihkan')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('trash_disposal')
+                                        ->label('13. Ada perlakuan yang aman (tidak dibakar, tidak dibuang ke sungai/kebun/ saluran drainase/ tempat terbuka)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('trash_segregation')
+                                        ->label('14. Telah melakukan pemilahan sampah')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Tempat Pengelolaan Limbah Cair Rumah Tangga
+                            Forms\Components\Section::make('Tempat Pengelolaan Limbah Cair Rumah Tangga')
+                                ->schema([
+                                    Forms\Components\Radio::make('no_water_puddles')
+                                        ->label('15. Tidak terlihat genangan air di sekitar rumah karena limbah cair domestik')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('connection_to_sewerage')
+                                        ->label('16. Terhubung dengan sumur resapan dan atau sistem pengolahan limbah (IPAL Komunal/ sewerage system)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('closed_waste_management')
+                                        ->label('17. Tersedia tempat pengelolaan limbah cair dengan kondisi tertutup')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Kandang Ternak
+                            Forms\Components\Section::make('Kandang Ternak')
+                                ->schema([
+                                    Forms\Components\Radio::make('separated_cattle_shed')
+                                        ->label('18. Bila memiliki kandang ternak, kandang terpisah dengan rumah tinggal')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
                         ]),
 
                     // Step 4: Perilaku
                     Wizard\Step::make('Perilaku')
-                        ->description('Masukkan informasi kesehatan lingkungan')
+                        ->description('Masukkan informasi perilaku terkait kesehatan lingkungan')
                         ->icon('heroicon-o-user')
                         ->schema([
                             Forms\Components\Radio::make('bedroom_window_open')
@@ -400,20 +509,64 @@ class HousingSurveyRelationManager extends RelationManager
                             Forms\Components\Radio::make('living_room_window_open')
                                 ->label('2. Jendela kamar keluarga selalu dibuka setiap hari')
                                 ->options([true => 'Ya', false => 'Tidak']),
+
+                            Forms\Components\Radio::make('ventilation_open')
+                                ->label('3. Ventilasi rumah selalu dibuka setiap hari')
+                                ->options([true => 'Ya', false => 'Tidak']),
+
+                            Forms\Components\Radio::make('ctps_practice')
+                                ->label('4. Melakukan Cuci Tangan Pakai Sabun (CTPS)')
+                                ->options([true => 'Ya', false => 'Tidak']),
+
+                            Forms\Components\Radio::make('psn_practice')
+                                ->label('5. Melakukan Pemberantasan Sarang Nyamuk (PSN) seminggu sekali')
+                                ->options([true => 'Ya', false => 'Tidak']),
                         ]),
 
-
+                    // Step 5: Hasil Sanitarian Kit
                     Wizard\Step::make('Hasil Sanitarian Kit')
                         ->description('Masukkan informasi hasil sanitarian kit')
                         ->icon('heroicon-o-shield-check')
                         ->schema([
-                            Forms\Components\Radio::make('noise_level')
-                                ->label('1. Kebisingan (<85 dBA)')
-                                ->options([true => 'Ya', false => 'Tidak']),
+                            // Parameter Ruang
+                            Forms\Components\Section::make('Parameter Ruang')
+                                ->schema([
+                                    Forms\Components\Radio::make('room_noise_level')
+                                        ->label('1. Kebisingan (<85 dBA)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
 
-                            Forms\Components\Radio::make('humidity')
-                                ->label('2. Kelembaban (40-60%RH)')
-                                ->options([true => 'Ya', false => 'Tidak']),
+                                    Forms\Components\Radio::make('room_humidity')
+                                        ->label('2. Kelembaban (40-60%RH)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('room_brightness')
+                                        ->label('3. Pencahayaan (>60 LUX)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('room_air_ventilation')
+                                        ->label('4. Laju ventilasi udara (0,15-0,25 m/s)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('room_temperature')
+                                        ->label('5. Suhu ruang (18 - 30°C)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Parameter Air
+                            Forms\Components\Section::make('Parameter Air')
+                                ->schema([
+                                    Forms\Components\Radio::make('water_ph')
+                                        ->label('1. pH (6,5-8,5)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_temperature')
+                                        ->label('2. Suhu (Suhu udara ± 3°C)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_tds')
+                                        ->label('3. TDS (<300 mg/l)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
                         ]),
 
 

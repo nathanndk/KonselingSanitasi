@@ -49,13 +49,13 @@ class SanitationConditionResource extends Resource
             ->schema([
                 Fieldset::make('Informasi Konseling')
                     ->schema([
-                        // DatePicker::make('counseling_date')
-                        //     ->label('Tanggal Pelaksanaan Konseling')
-                        //     ->required()
-                        //     ->default(now())
-                        //     ->placeholder('Pilih tanggal konseling')
-                        //     ->helperText('Pilih tanggal konseling dilaksanakan.')
-                        //     ->columnSpanFull(),
+                        DatePicker::make('sampling_date')
+                            ->label('Tanggal Pelaksanaan Konseling')
+                            ->required()
+                            ->default(now())
+                            ->placeholder('Pilih tanggal konseling')
+                            ->helperText('Pilih tanggal konseling dilaksanakan.')
+                            ->columnSpanFull(),
 
                         Select::make('patient_id')
                             ->label('Nama Pasien')
@@ -226,7 +226,7 @@ class SanitationConditionResource extends Resource
         return $table
             ->columns([
 
-                TextColumn::make('counseling_date')
+                TextColumn::make('sampling_date')
                     ->label('Tanggal Pelaksanaan Konseling')
                     ->date('d F Y')
                     ->sortable(),

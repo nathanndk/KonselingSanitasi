@@ -10,9 +10,9 @@ class CreateAddressTable extends Migration
     {
         Schema::create('address', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('street')->nullable();
-            $table->string('district_code')->nullable();
-            $table->string('subdistrict_code')->nullable();
+            $table->string('street', 255)->nullable();
+            $table->string('district_code', 5)->nullable();
+            $table->string('subdistrict_code', 5)->nullable();
             $table->timestamps();
 
             // Foreign key constraints

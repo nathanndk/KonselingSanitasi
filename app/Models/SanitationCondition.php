@@ -10,7 +10,7 @@ class SanitationCondition extends Model
     use HasFactory;
 
     protected $fillable = [
-        'counseling_date',
+        'sampling_date',
         'patient_id',
         'condition',
         'recommendation',

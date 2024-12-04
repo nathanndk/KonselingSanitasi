@@ -234,10 +234,15 @@ class PdamRelationManager extends RelationManager
                                         ->placeholder('Masukkan nilai Warna')
                                         ->helperText('Isi dengan hasil tes Warna.'),
 
-                                    Forms\Components\TextInput::make('bau')
+                                    Forms\Components\Select::make('odor')
                                         ->label('Bau')
-                                        ->placeholder('Masukkan deskripsi Bau')
-                                        ->helperText('Isi dengan hasil pengamatan bau air.'),
+                                        ->options([
+                                            'bau' => 'Bau',
+                                            'tidak_berbau' => 'Tidak berbau',
+                                        ])
+                                        // ->placeholder('Pilih jenis bau')
+                                        ->helperText('Pilih apakah air berbau atau tidak.'),
+
 
                                     Forms\Components\TextInput::make('suhu')
                                         ->label('Suhu')
@@ -515,9 +520,9 @@ class PdamRelationManager extends RelationManager
                         $event = \App\Models\HealthEvent::find($data['event_id'] ?? null);
 
                         if ($event) {
-                            $data['sampling_date'] = $event->start_date; // Set sampling_date dari event
+                            $data['sampling_date'] = $event->start_date;
                         } else {
-                            $data['sampling_date'] = now(); // Set nilai default jika event tidak ditemukan
+                            $data['sampling_date'] = now();
                         }
 
                         $data['created_by'] = Auth::id();

@@ -9,8 +9,8 @@ class CreateDistrictTable extends Migration
     public function up()
     {
         Schema::create('district', function (Blueprint $table) {
-            $table->string('district_code', 255)->primary();
-            $table->string('district_name', 255);
+            $table->string('district_code', 5)->primary();
+            $table->string('district_name', 50);
             $table->timestamps();
         });
     }

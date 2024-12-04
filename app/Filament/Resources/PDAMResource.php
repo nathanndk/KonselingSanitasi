@@ -194,10 +194,14 @@ class PDAMResource extends Resource
                         ->description('Masukkan hasil pemeriksaan laboratorium')
                         ->icon('heroicon-o-beaker')
                         ->schema([
-                            Forms\Components\TextInput::make('odor')
+                            Forms\Components\Select::make('odor')
                                 ->label('Bau')
-                                ->placeholder('Masukkan deskripsi bau')
-                                ->helperText('Isi dengan hasil pengamatan bau air.'),
+                                ->options([
+                                    'bau' => 'Bau',
+                                    'tidak_berbau' => 'Tidak berbau',
+                                ])
+                                ->placeholder('Pilih jenis bau')
+                                ->helperText('Pilih apakah air berbau atau tidak.'),
 
                             Forms\Components\TextInput::make('temperature_measurement')
                                 ->label('Suhu Lab')

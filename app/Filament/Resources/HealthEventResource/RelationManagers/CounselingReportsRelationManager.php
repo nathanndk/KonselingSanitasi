@@ -228,7 +228,7 @@ class CounselingReportsRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
 
-                TextColumn::make('counseling_date')
+                TextColumn::make('sampling_date')
                     ->label('Tanggal Pelaksanaan Konseling')
                     ->date()
                     ->sortable(),
