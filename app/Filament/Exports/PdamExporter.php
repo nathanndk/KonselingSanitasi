@@ -24,16 +24,16 @@ class PdamExporter extends Exporter
                 ->formatStateUsing(fn($state) => (string) $state),
 
             ExportColumn::make('patient.address.street')
-                ->label('Jalan')
-                ->formatStateUsing(fn($state) => (string) $state),,
+                ->label('Jalan'),
 
-            ExportColumn::make('patient.address.subdistrict')
+                ExportColumn::make('patient.address.subdistrict')
                 ->label('Kelurahan')
-                ->formatStateUsing(fn($state) => (string) $state),
+                ->formatStateUsing(fn ($state) => json_decode($state, true)['subdistrict_name'] ?? ''),
 
             ExportColumn::make('patient.address.district')
                 ->label('Kecamatan')
-                ->formatStateUsing(fn($state) => (string) $state),
+                ->formatStateUsing(fn ($state) => json_decode($state, true)['district_name'] ?? ''),
+
 
             ExportColumn::make('patient.nik')
                 ->label('NIK')
@@ -52,7 +52,7 @@ class PdamExporter extends Exporter
                 ->formatStateUsing(fn($state) => (string) $state),
 
             ExportColumn::make('risk_level')
-                ->label('Tingkat Resiko R/S/T/ST')
+                ->label('Tingkat Resiko')
                 ->formatStateUsing(fn($state) => $state instanceof TingkatResiko ? $state->value : (string) $state),
 
             ExportColumn::make('remaining_chlorine')
