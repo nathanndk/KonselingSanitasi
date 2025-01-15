@@ -7,6 +7,7 @@ use App\Filament\Exports\HousingSurveyExporter;
 use App\Filament\Resources\HouseResource\Pages;
 use App\Models\District;
 use App\Models\HousingSurvey;
+use App\Models\Patient;
 use App\Models\Subdistrict;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -38,6 +39,12 @@ class HouseResource extends Resource
     {
         return 'Rumah Sehat';
     }
+    // public static function form(Form $form): Form
+    // {
+    //     return $form
+
+    // }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -48,122 +55,92 @@ class HouseResource extends Resource
                         ->description('Masukkan informasi dasar')
                         ->icon('heroicon-o-document')
                         ->schema([
-                            Forms\Components\DatePicker::make('sampling_date')
-                                ->label('Tanggal Kunjungan')
-                                ->required()
-                                ->placeholder('Pilih tanggal kunjungan')
-                                ->helperText('Masukkan tanggal kunjungan rumah sesuai jadwal.'),
+                            // Forms\Components\DatePicker::make('sampling_date')
+                            //     ->label('Tanggal Kunjungan')
+                            //     ->required()
+                            //     ->placeholder('Pilih tanggal kunjungan')
+                            //     ->helperText('Masukkan tanggal kunjungan rumah sesuai jadwal.'),
 
                             Select::make('patient_id')
-                                ->label('Nama Pasien')
-                                ->searchable()
-                                ->relationship('patient', 'name')
-                                ->preload()
-                                ->createOptionForm([
-                                    Forms\Components\Fieldset::make('Informasi Personal')
-                                        ->schema([
-                                            Forms\Components\TextInput::make('nik')
-                                                ->label('NIK')
-                                                ->maxLength(16)
-                                                ->minLength(16)
-                                                ->placeholder('Masukkan NIK 16 digit')
-                                                ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat pada KTP.'),
+                            ->label('Nama Pasien')
+                            ->searchable()
+                            ->columnSpanFull()
+                            ->getSearchResultsUsing(
+                                fn(string $search): array =>
+                                Patient::query()
+                                    ->where('nik', 'like', "%{$search}%") // Pencarian berdasarkan NIK
+                                    ->orWhere('name', 'like', "%{$search}%") // Tambahkan pencarian nama jika dibutuhkan
+                                    ->limit(50)
+                                    ->get()
+                                    ->mapWithKeys(fn($patient) => [$patient->id => "{$patient->name} ({$patient->nik})"]) // Format: Nama (NIK)
+                                    ->toArray()
+                            )
+                            ->getOptionLabelUsing(
+                                fn($value): ?string =>
+                                Patient::find($value)?->name // Tampilkan hanya Nama Pasien saat dipilih
+                            )
+                            ->required()
+                            ->placeholder('Pilih nama pasien')
+                            ->helperText('Cari pasien menggunakan NIK atau nama.')
+                            ->createOptionForm([
+                                // Form pembuatan pasien baru tetap diisi sesuai kebutuhan Anda
+                                Forms\Components\Fieldset::make('Informasi Personal')
+                                    ->schema([
+                                        TextInput::make('nik')
+                                            ->label('NIK')
+                                            ->maxLength(16)
+                                            ->minLength(16)
+                                            ->unique()
+                                            ->placeholder('Masukkan NIK 16 digit')
+                                            ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat di KTP.')
+                                            ->columnSpanFull(),
+                                        TextInput::make('name')
+                                            ->label('Nama')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Masukkan nama lengkap Anda sesuai KTP')
+                                            ->helperText('Gunakan nama sesuai identitas resmi.')
+                                            ->columnSpanFull(),
+                                        DatePicker::make('date_of_birth')
+                                            ->label('Tanggal Lahir')
+                                            ->required()
+                                            ->rule('before_or_equal:today')
+                                            ->placeholder('Pilih tanggal lahir')
+                                            ->helperText('Masukkan tanggal lahir Anda.')
+                                            ->maxDate(now())
+                                            ->columnSpanFull(),
+                                        Select::make('gender')
+                                            ->label('Jenis Kelamin')
+                                            ->options([
+                                                'L' => 'Laki-laki',
+                                                'P' => 'Perempuan',
+                                            ])
+                                            ->required()
+                                            ->placeholder('Pilih jenis kelamin')
+                                            ->helperText('Pilih salah satu sesuai jenis kelamin Anda.')
+                                            ->columnSpanFull(),
+                                        TextInput::make('phone_number')
+                                            ->label('Nomor Telepon')
+                                            ->minLength(10)
+                                            ->maxLength(15)
+                                            ->unique()
+                                            ->placeholder('Masukkan nomor telepon aktif')
+                                            ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.')
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columnSpanFull(),
+                            ])
+                            ->createOptionUsing(function (array $data): int {
+                                // Logika penyimpanan data baru
+                                $record = Patient::create($data);
 
-                                            Forms\Components\TextInput::make('name')
-                                                ->label('Nama')
-                                                ->required()
-                                                ->maxLength(50)
-                                                ->placeholder('Masukkan nama lengkap')
-                                                ->helperText('Gunakan nama sesuai identitas resmi.'),
+                                // Mengembalikan primary key dari record yang baru dibuat
+                                return $record->getKey();
+                            }),
 
-                                            Forms\Components\DatePicker::make('date_of_birth')
-                                                ->label('Tanggal Lahir')
-                                                ->required()
-                                                ->rule('before_or_equal:today')
-                                                ->placeholder('Pilih tanggal lahir')
-                                                ->helperText('Masukkan tanggal lahir sesuai dokumen resmi.')
-                                                ->maxDate(now()),
-
-                                            Forms\Components\Select::make('gender')
-                                                ->label('Jenis Kelamin')
-                                                ->options([
-                                                    'L' => 'Laki-laki',
-                                                    'P' => 'Perempuan',
-                                                ])
-                                                ->required()
-                                                ->placeholder('Pilih jenis kelamin')
-                                                ->helperText('Pilih salah satu sesuai jenis kelamin.'),
-
-                                            Forms\Components\TextInput::make('phone_number')
-                                                ->label('Nomor Telepon')
-                                                ->minLength(10)
-                                                ->maxLength(15)
-                                                ->placeholder('Masukkan nomor telepon aktif')
-                                                ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.'),
-                                        ])
-                                        ->label('Informasi Personal'),
-
-                                    Forms\Components\Fieldset::make('Alamat')
-                                        ->schema([
-                                            // Forms\Components\Select::make('health_center_id')
-                                            //     ->label('Puskesmas')
-                                            //     ->relationship('healthCenter', 'name')
-                                            //     ->placeholder('Pilih puskesmas tempat Anda terdaftar')
-                                            //     ->searchable()
-                                            //     ->preload()
-                                            //     ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
-
-                                            Forms\Components\Textarea::make('address.street')
-                                                ->label('Jalan')
-                                                ->placeholder('Masukkan nama jalan')
-                                                ->helperText('Cantumkan nama jalan tempat Anda tinggal saat ini.'),
-
-                                            Forms\Components\Select::make('address.district_code')
-                                                ->label('Kecamatan')
-                                                ->options(District::pluck('district_name', 'district_code'))
-                                                ->searchable()
-                                                ->reactive()
-                                                ->placeholder('Pilih kecamatan')
-                                                ->helperText('Isi dengan kecamatan tempat tinggal Anda.')
-                                                ->afterStateUpdated(function ($set) {
-                                                    $set('address.subdistrict_code', null);
-                                                }),
-
-                                            Forms\Components\Select::make('address.subdistrict_code')
-                                                ->label('Kelurahan')
-                                                ->options(function (callable $get) {
-                                                    $districtCode = $get('address.district_code');
-                                                    return $districtCode
-                                                        ? Subdistrict::where('district_code', $districtCode)->pluck('subdistrict_name', 'subdistrict_code')
-                                                        : [];
-                                                })
-                                                ->searchable()
-                                                ->placeholder('Pilih kelurahan')
-                                                ->helperText('Isi dengan kelurahan tempat tinggal Anda.'),
-
-                                            Forms\Components\TextInput::make('address.rt')
-                                                ->label('RT')
-                                                ->maxLength(3)
-                                                ->minLength(3)
-                                                ->placeholder('Masukkan RT (3 digit)')
-                                                ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
-                                                ->numeric()
-                                                ->columnSpan(1),
-
-                                            Forms\Components\TextInput::make('address.rw')
-                                                ->label('RW')
-                                                ->maxLength(3)
-                                                ->minLength(3)
-                                                ->placeholder('Masukkan RW (3 digit)')
-                                                ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
-                                                ->numeric()
-                                                ->columnSpan(1),
-                                        ])
-                                        ->label('Detail Alamat'),
-                                ]),
 
                             Forms\Components\TextInput::make('diagnosed_disease')
-                                ->label('Penyakit yang Didiagnosis')
+                                ->label('Dalam 1 bulan terakhir apakah ada anggota rumah tangga yang pernah di diagnosis menderita (Diare/DBD/Leptospirosis/Stunting/TBC/Ispa/Pneumonia/Scabies) ')
                                 ->placeholder('Tulis nama penyakitnya jika ada')
                                 ->maxLength(100)
                                 ->helperText('Isi nama penyakit yang didiagnosis dokter jika ada.'),
@@ -230,6 +207,7 @@ class HouseResource extends Resource
                                 ->options([
                                     'rumah_sendiri' => 'Rumah Sendiri',
                                     'kontrak' => 'Rumah Kontrak',
+                                    'orang_tua' => 'Rumah Orang Tua',
                                 ])
                                 ->placeholder('Pilih status kepemilikan rumah')
                                 ->helperText('Pilih apakah rumah dimiliki sendiri atau sewa.'),
@@ -244,7 +222,7 @@ class HouseResource extends Resource
                     // Step 2: Rumah Layak
                     Wizard\Step::make('Rumah Layak')
                         ->description('Masukkan informasi rumah layak')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-home-modern')
                         ->schema([
                             // Lokasi Rumah
                             Forms\Components\Section::make('Lokasi Rumah')
@@ -334,7 +312,7 @@ class HouseResource extends Resource
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('ceiling_height_minimum')
-                                        ->label('18. Tinggi langit-langit minimum 2,4 m')
+                                        ->label('18. Tinggi langit-langit minimum 2,4 m²')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
 
@@ -354,19 +332,59 @@ class HouseResource extends Resource
                             Forms\Components\Section::make('Lantai Rumah')
                                 ->schema([
                                     Forms\Components\Radio::make('floor_waterproof')
-                                        ->label('21. Lantai bangunan kedap air')
+                                        ->label('1. Lantai bangunan kedap air')
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('floor_smooth_no_cracks')
-                                        ->label('22. Permukaan rata, halus, tidak licin, dan tidak retak')
+                                        ->label('2. Permukaan rata, halus, tidak licin, dan tidak retak')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_dust_resistant')
+                                        ->label('3. Lantai tidak menyerap debu dan mudah dibersihkan')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_sloped_for_cleaning')
+                                        ->label('4. Lantai yang kontak dengan air dan memiliki kemiringan cukup landai untuk memudahkan pembersihan dan tidak terjadi genangan air')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_clean')
+                                        ->label('5. Lantai rumah dalam keadaan bersih')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('floor_light_color')
+                                        ->label('6. Warna lantai harus berwarna terang')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
+
+                            // Ventilasi Rumah
+                            Forms\Components\Section::make('Ventilasi Rumah')
+                                ->schema([
+                                    Forms\Components\Radio::make('ventilation_present')
+                                        ->label('1. Ada ventilasi rumah')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('ventilation_area')
+                                        ->label('2. Luas ventilasi permanen > 10% luas lantai')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Pencahayaan Rumah
+                            Forms\Components\Section::make('Pencahayaan Rumah')
+                                ->schema([
+                                    Forms\Components\Radio::make('lighting_present')
+                                        ->label('1. Ada pencahayaan rumah')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('lighting_brightness')
+                                        ->label('2. Terang, tidak silau sehingga dapat untuk baca dengan normal')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ])
+
                         ]),
 
-                    // Step 3: Sarana Sanitasi
                     Wizard\Step::make('Sarana Sanitasi')
                         ->description('Masukkan informasi sarana sanitasi')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-shield-exclamation')
                         ->schema([
                             // Ketersediaan Air
                             Forms\Components\Section::make('Ketersediaan Air')
@@ -378,17 +396,33 @@ class HouseResource extends Resource
                                     Forms\Components\Radio::make('drinking_water_location')
                                         ->label('2. Lokasi sumber Air Minum berada di dalam sarana bangunan/on premises')
                                         ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_supply_hrs')
+                                        ->label('3. Tidak mengalami kesulitan pasokan air selama 24 jam')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_quality')
+                                        ->label('4. Kualitas air memenuhi SBMKL dan Persyaratan Kesehatan air sesuai ketentuan yang berlaku')
+                                        ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
 
                             // Toilet/Sanitasi
                             Forms\Components\Section::make('Toilet/Sanitasi')
                                 ->schema([
                                     Forms\Components\Radio::make('toilet_usage')
-                                        ->label('3. Buang Air Besar di Jamban')
+                                        ->label('5. Buang Air Besar di Jamban')
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('own_toilet')
-                                        ->label('4. Jamban milik sendiri')
+                                        ->label('6. Jamban milik sendiri')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('squat_toilet')
+                                        ->label('7. Kloset Leher Angsa')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('septic_tank')
+                                        ->label('8. Tangki septik disedot setidaknya sekali dalam 3-5 tahun terakhir atau disalurkan ke Sistem Pengolahan Air Limbah Domestik Terpusat (SPAL-DT)')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
 
@@ -396,19 +430,59 @@ class HouseResource extends Resource
                             Forms\Components\Section::make('Sarana CTPS')
                                 ->schema([
                                     Forms\Components\Radio::make('ctps_facility')
-                                        ->label('5. Memiliki sarana CTPS dengan air mengalir dilengkapi dengan sabun')
+                                        ->label('10. Memiliki sarana CTPS dengan air mengalir dilengkapi dengan sabun')
                                         ->options([true => 'Ya', false => 'Tidak']),
 
                                     Forms\Components\Radio::make('ctps_accessibility')
-                                        ->label('6. Lokasi sarana CTPS mudah dijangkau pada saat Waktu-waktu kritis CTPS')
+                                        ->label('11. Lokasi sarana CTPS mudah dijangkau pada saat Waktu-waktu kritis CTPS')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Tempat Pengelolaan Sampah Rumah Tangga
+                            Forms\Components\Section::make('Tempat Pengelolaan Sampah Rumah Tangga')
+                                ->schema([
+                                    Forms\Components\Radio::make('trash_bin_available')
+                                        ->label('12. Tersedia tempat sampah di ruangan, kuat dan mudah dibersihkan')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('trash_disposal')
+                                        ->label('13. Ada perlakuan yang aman (tidak dibakar, tidak dibuang ke sungai/kebun/ saluran drainase/ tempat terbuka)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('trash_segregation')
+                                        ->label('14. Telah melakukan pemilahan sampah')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Tempat Pengelolaan Limbah Cair Rumah Tangga
+                            Forms\Components\Section::make('Tempat Pengelolaan Limbah Cair Rumah Tangga')
+                                ->schema([
+                                    Forms\Components\Radio::make('no_water_puddles')
+                                        ->label('15. Tidak terlihat genangan air di sekitar rumah karena limbah cair domestik')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('connection_to_sewerage')
+                                        ->label('16. Terhubung dengan sumur resapan dan atau sistem pengolahan limbah (IPAL Komunal/ sewerage system)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('closed_waste_management')
+                                        ->label('17. Tersedia tempat pengelolaan limbah cair dengan kondisi tertutup')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Kandang Ternak
+                            Forms\Components\Section::make('Kandang Ternak')
+                                ->schema([
+                                    Forms\Components\Radio::make('separated_cattle_shed')
+                                        ->label('18. Bila memiliki kandang ternak, kandang terpisah dengan rumah tinggal')
                                         ->options([true => 'Ya', false => 'Tidak']),
                                 ]),
                         ]),
 
                     // Step 4: Perilaku
                     Wizard\Step::make('Perilaku')
-                        ->description('Masukkan informasi kesehatan lingkungan')
-                        ->icon('heroicon-o-home')
+                        ->description('Masukkan informasi perilaku terkait kesehatan lingkungan')
+                        ->icon('heroicon-o-user')
                         ->schema([
                             Forms\Components\Radio::make('bedroom_window_open')
                                 ->label('1. Jendela kamar tidur selalu dibuka setiap hari')
@@ -417,27 +491,71 @@ class HouseResource extends Resource
                             Forms\Components\Radio::make('living_room_window_open')
                                 ->label('2. Jendela kamar keluarga selalu dibuka setiap hari')
                                 ->options([true => 'Ya', false => 'Tidak']),
+
+                            Forms\Components\Radio::make('ventilation_open')
+                                ->label('3. Ventilasi rumah selalu dibuka setiap hari')
+                                ->options([true => 'Ya', false => 'Tidak']),
+
+                            Forms\Components\Radio::make('ctps_practice')
+                                ->label('4. Melakukan Cuci Tangan Pakai Sabun (CTPS)')
+                                ->options([true => 'Ya', false => 'Tidak']),
+
+                            Forms\Components\Radio::make('psn_practice')
+                                ->label('5. Melakukan Pemberantasan Sarang Nyamuk (PSN) seminggu sekali')
+                                ->options([true => 'Ya', false => 'Tidak']),
                         ]),
 
-
+                    // Step 5: Hasil Sanitarian Kit
                     Wizard\Step::make('Hasil Sanitarian Kit')
                         ->description('Masukkan informasi hasil sanitarian kit')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-shield-check')
                         ->schema([
-                            Forms\Components\Radio::make('noise_level')
-                                ->label('1. Kebisingan (<85 dBA)')
-                                ->options([true => 'Ya', false => 'Tidak']),
+                            // Parameter Ruang
+                            Forms\Components\Section::make('Parameter Ruang')
+                                ->schema([
+                                    Forms\Components\Radio::make('room_noise_level')
+                                        ->label('1. Kebisingan (<85 dBA)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
 
-                            Forms\Components\Radio::make('humidity')
-                                ->label('2. Kelembaban (40-60%RH)')
-                                ->options([true => 'Ya', false => 'Tidak']),
+                                    Forms\Components\Radio::make('room_humidity')
+                                        ->label('2. Kelembaban (40-60%RH)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('room_brightness')
+                                        ->label('3. Pencahayaan (>60 LUX)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('room_air_ventilation')
+                                        ->label('4. Laju ventilasi udara (0,15-0,25 m/s)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('room_temperature')
+                                        ->label('5. Suhu ruang (18 - 30°C)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
+
+                            // Parameter Air
+                            Forms\Components\Section::make('Parameter Air')
+                                ->schema([
+                                    Forms\Components\Radio::make('water_ph')
+                                        ->label('1. pH (6,5-8,5)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_temperature')
+                                        ->label('2. Suhu (Suhu udara ± 3°C)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+
+                                    Forms\Components\Radio::make('water_tds')
+                                        ->label('3. TDS (<300 mg/l)')
+                                        ->options([true => 'Ya', false => 'Tidak']),
+                                ]),
                         ]),
 
 
                     //Keterangan
                     Wizard\Step::make('Keterangan')
                         ->description('Tambahkan catatan tambahan')
-                        ->icon('heroicon-o-home')
+                        ->icon('heroicon-o-clipboard')
                         ->schema([
                             Forms\Components\Textarea::make('notes')
                                 ->label('Catatan')
@@ -449,53 +567,58 @@ class HouseResource extends Resource
             ]);
     }
 
-
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('sampling_date')
                     ->label('Tanggal Kunjungan')
-                    ->date('d F Y'),
+                    ->date('d F Y')
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('patient.name')
                     ->label('Nama Pasien')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('patient.address.street')
+                    ->label('Alamat Pasien')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('diagnosed_disease')
-                    ->label('Penyakit')
-                    ->limit(50),
+                    ->label('Penyakit yang Didiagnosis')
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('head_of_family')
-                    ->label('Kepala Keluarga')
-                    ->searchable()
-                    ->sortable(),
+                    ->label('Nama Kepala Keluarga (KK)')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('drinking_water_source')
-                    ->label('Air Minum')
+                    ->label('Sumber Air Minum')
                     ->formatStateUsing(fn($state) => match ($state) {
-                        'ISI_ULANG' => 'Isi Ulang',
-                        'AMDK' => 'AMDK',
-                        'SGL' => 'Sumur',
-                        'ARTERTIS' => 'Air Tanah',
+                        'SUMUR' => 'Sumur',
+                        'PDAM' => 'PDAM',
+                        'AIR_HUJAN' => 'Air Hujan',
                         'MATA_AIR' => 'Mata Air',
+                        'ISI_ULANG' => 'Isi Ulang',
                         default => $state,
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('clean_water_source')
-                    ->label('Air Bersih')
+                    ->label('Sumber Air Bersih')
                     ->formatStateUsing(fn($state) => match ($state) {
-                        'ISI_ULANG' => 'Isi Ulang',
-                        'AMDK' => 'AMDK',
-                        'SGL' => 'Sumur',
-                        'ARTERTIS' => 'Air Tanah',
+                        'SUMUR' => 'Sumur',
+                        'PDAM' => 'PDAM',
+                        'AIR_HUJAN' => 'Air Hujan',
                         'MATA_AIR' => 'Mata Air',
+                        'ISI_ULANG' => 'Isi Ulang',
                         default => $state,
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('last_education')
-                    ->label('Pendidikan')
+                    ->label('Pendidikan Terakhir Kepala Keluarga')
                     ->formatStateUsing(fn($state) => match ($state) {
                         'tidak_sekolah' => 'Tidak Sekolah',
                         'SD' => 'SD',
@@ -507,109 +630,46 @@ class HouseResource extends Resource
                         'S2' => 'S2',
                         'S3' => 'S3',
                         default => $state,
-                    }),
+                    })
+                    ->limit(20)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('job')
-                    ->label('Pekerjaan'),
+                    ->label('Pekerjaan Kepala Keluarga')
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'PETANI' => 'Petani',
+                        'PNS' => 'PNS',
+                        'TNIPOLRI' => 'TNI/POLRI',
+                        'PEDAGANG' => 'Pedagang',
+                        'BURUH' => 'Buruh',
+                        'WIRASWASTA' => 'Wiraswasta',
+                        'SUPIR' => 'Supir',
+                        default => $state,
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('family_members')
-                    ->label('Jiwa/KK')
-                    ->numeric(),
+                    ->label('Jumlah Jiwa dalam KK')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('house_ownership')
-                    ->label('Kepemilikan')
+                    ->label('Status Kepemilikan Rumah')
                     ->formatStateUsing(fn($state) => match ($state) {
-                        'rumah_sendiri' => 'Sendiri',
-                        'kontrak' => 'Kontrak',
+                        'rumah_sendiri' => 'Rumah Sendiri',
+                        'kontrak' => 'Rumah Kontrak',
                         default => $state,
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('house_area')
-                    ->label('Luas Rumah')
-                    ->numeric(),
-
-                // Kolom boolean dengan label singkat
-                Tables\Columns\TextColumn::make('landslide_prone')
-                    ->label('Lokasi Longsor')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('garbage_site_nearby')
-                    ->label('Lokasi Sampah')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('high_voltage_area')
-                    ->label('Jalur Tegangan')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('roof_strong_no_leak')
-                    ->label('Atap Kuat')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('roof_drainage')
-                    ->label('Drainase Atap')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('ceiling_strong_safe')
-                    ->label('Langit Kuat')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('ceiling_clean_no_dust')
-                    ->label('Langit Bersih')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('ceiling_flat_adequate_air')
-                    ->label('Ventilasi')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('safe_drinking_water_source')
-                    ->label('Air Minum Layak')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('drinking_water_location')
-                    ->label('Lokasi Air Minum')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('toilet_usage')
-                    ->label('Pakai Jamban')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('own_toilet')
-                    ->label('Jamban Sendiri')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('ctps_facility')
-                    ->label('CTPS Ada')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('ctps_accessibility')
-                    ->label('CTPS Mudah')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('bedroom_window_open')
-                    ->label('Jendela Kamar')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('living_room_window_open')
-                    ->label('Jendela Keluarga')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('noise_level')
-                    ->label('Kebisingan')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('humidity')
-                    ->label('Kelembaban')
-                    ->formatStateUsing(fn($state) => $state ? 'Ya' : 'Tidak'),
-
-                Tables\Columns\TextColumn::make('notes')
-                    ->label('Catatan')
-                    ->limit(100),
+                    ->label('Luas Rumah (m²)')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->modifyQueryUsing(function (Builder $query) {
                 $user = Auth::user();
 
                 // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
-                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
                     return $query;
                 }
 
@@ -629,25 +689,25 @@ class HouseResource extends Resource
                 return $query->where('id', null); // Tidak menampilkan data apa pun
             })
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                ->modalHeading('Lihat Data Rumah Sehat'),
+                Tables\Actions\EditAction::make()
+                ->modalHeading('Ubah Data Rumah Sehat'),
+                Tables\Actions\DeleteAction::make()
+                ->modalHeading('Hapus Data Rumah Sehat'),
             ])
             ->headerActions([
                 ActionsExportAction::make()
                     ->exporter(HousingSurveyExporter::class)
-                    ->label('Cetak Formulir Rumah Sehat')
-                    ->modalHeading('Cetak Formulir Rumah Sehat')
-                    ->modalButton('Print')
+                    ->label('Ekspor Formulir Rumah Sehat')
+                    ->modalHeading('Ekspor Formulir Rumah Sehat')
+                    ->modalButton('Ekspor')
                     ->columnMapping(false),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
-
-
-
-
-
     public static function getRelations(): array
     {
         return [
@@ -660,7 +720,7 @@ class HouseResource extends Resource
         return [
             'index' => Pages\ListHouses::route('/'),
             // 'create' => Pages\CreateHouse::route('/create'),
-            'edit' => Pages\EditHouse::route('/{record}/edit'),
+            // 'edit' => Pages\EditHouse::route('/{record}/edit'),
         ];
     }
 }

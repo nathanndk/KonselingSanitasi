@@ -3,42 +3,25 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Address;
+use Illuminate\Support\Facades\DB;
 
 class AddressSeeder extends Seeder
 {
     public function run(): void
     {
         $addresses = [
-            [
-                'street' => 'Jl. Merdeka No.1',
-                'subdistrict_code' => 'KD01', // Gunakan kode sesuai tabel `subdistrict`
-                'district_code' => 'KC01',     // Gunakan kode sesuai tabel `district`
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'street' => 'Jl. Raya Bogor KM 23',
-                'subdistrict_code' => 'KD02',
-                'district_code' => 'KC02',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'street' => 'Jl. Raya Serpong No.88',
-                'subdistrict_code' => 'KD03',
-                'district_code' => 'KC03',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+            ['street' => 'Jalan Diponegoro', 'district_code' => 'D001', 'subdistrict_code' => 'SD001'],
+            ['street' => 'Jalan Sudirman', 'district_code' => 'D002', 'subdistrict_code' => 'SD002'],
+            ['street' => 'Jalan Gatot Subroto', 'district_code' => 'D003', 'subdistrict_code' => 'SD003'],
+            ['street' => 'Jalan Ahmad Yani', 'district_code' => 'D004', 'subdistrict_code' => 'SD004'],
+            ['street' => 'Jalan Pemuda', 'district_code' => 'D005', 'subdistrict_code' => 'SD005'],
+            ['street' => 'Jalan Gajah Mada', 'district_code' => 'D006', 'subdistrict_code' => 'SD006'],
+            ['street' => 'Jalan Diponegoro 2', 'district_code' => 'D007', 'subdistrict_code' => 'SD007'],
+            ['street' => 'Jalan Pahlawan', 'district_code' => 'D008', 'subdistrict_code' => 'SD008'],
+            ['street' => 'Jalan Dr. Sutomo', 'district_code' => 'D009', 'subdistrict_code' => 'SD009'],
+            ['street' => 'Jalan Imam Bonjol', 'district_code' => 'D010', 'subdistrict_code' => 'SD010'],
         ];
 
-        foreach ($addresses as $address) {
-            Address::firstOrCreate([
-                'street' => $address['street'],
-                'subdistrict_code' => $address['subdistrict_code'],
-                'district_code' => $address['district_code'],
-            ], $address);
-        }
+        DB::table('address')->insert($addresses);
     }
 }

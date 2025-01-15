@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\HealthEventResource\RelationManagers;
 
+use App\Enums\TingkatResiko;
 use App\Models\District;
+use App\Models\Patient;
 use App\Models\Subdistrict;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -22,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 class PdamRelationManager extends RelationManager
 {
     protected static string $relationship = 'Pdam';
+    protected static ?string $title = 'PDAM';
 
     public function form(Forms\Form $form): Forms\Form
     {
@@ -42,36 +45,60 @@ class PdamRelationManager extends RelationManager
                             Select::make('patient_id')
                                 ->label('Nama Pasien')
                                 ->searchable()
-                                ->relationship('patient', 'name')
+                                ->columnSpanFull()
+                                ->getSearchResultsUsing(
+                                    fn(string $search): array =>
+                                    Patient::query()
+                                        ->where('nik', 'like', "%{$search}%") // Pencarian berdasarkan NIK
+                                        ->orWhere('name', 'like', "%{$search}%") // Tambahkan pencarian nama jika dibutuhkan
+                                        ->limit(50)
+                                        ->get()
+                                        ->mapWithKeys(fn($patient) => [$patient->id => "{$patient->name} ({$patient->nik})"]) // Format: Nama (NIK)
+                                        ->toArray()
+                                )
+                                ->getOptionLabelUsing(
+                                    fn($value): ?string =>
+                                    Patient::find($value)?->name // Tampilkan hanya Nama Pasien saat dipilih
+                                )
                                 ->required()
-                                ->preload()
-                                ->helperText('Pilih pasien dari daftar. Anda juga dapat menambahkan pasien baru.')
+                                ->placeholder('Pilih nama pasien')
+                                ->helperText('Cari pasien menggunakan NIK atau nama.')
+                                ->createOptionUsing(function (array $data): int {
+                                    // Logika penyimpanan data baru
+                                    $record = Patient::create($data);
+
+                                    // Mengembalikan primary key dari record yang baru dibuat
+                                    return $record->getKey();
+                                })
                                 ->createOptionForm([
+                                    // Form pembuatan pasien baru tetap diisi sesuai kebutuhan Anda
                                     Forms\Components\Fieldset::make('Informasi Personal')
                                         ->schema([
-                                            Forms\Components\TextInput::make('nik')
+                                            TextInput::make('nik')
                                                 ->label('NIK')
                                                 ->maxLength(16)
                                                 ->minLength(16)
+                                                ->unique()
                                                 ->placeholder('Masukkan NIK 16 digit')
-                                                ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat pada KTP.'),
-
-                                            Forms\Components\TextInput::make('name')
+                                                ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat di KTP.')
+                                                ->numeric()
+                                                ->columnSpanFull(),
+                                            TextInput::make('name')
                                                 ->label('Nama')
                                                 ->required()
                                                 ->maxLength(50)
-                                                ->placeholder('Masukkan nama lengkap')
-                                                ->helperText('Gunakan nama sesuai identitas resmi.'),
-
-                                            Forms\Components\DatePicker::make('date_of_birth')
+                                                ->placeholder('Masukkan nama lengkap Anda sesuai KTP')
+                                                ->helperText('Gunakan nama sesuai identitas resmi.')
+                                                ->columnSpanFull(),
+                                            DatePicker::make('date_of_birth')
                                                 ->label('Tanggal Lahir')
                                                 ->required()
                                                 ->rule('before_or_equal:today')
                                                 ->placeholder('Pilih tanggal lahir')
-                                                ->helperText('Masukkan tanggal lahir sesuai dokumen resmi.')
-                                                ->maxDate(now()),
-
-                                            Forms\Components\Select::make('gender')
+                                                ->helperText('Masukkan tanggal lahir Anda.')
+                                                ->maxDate(now())
+                                                ->columnSpanFull(),
+                                            Select::make('gender')
                                                 ->label('Jenis Kelamin')
                                                 ->options([
                                                     'L' => 'Laki-laki',
@@ -79,88 +106,26 @@ class PdamRelationManager extends RelationManager
                                                 ])
                                                 ->required()
                                                 ->placeholder('Pilih jenis kelamin')
-                                                ->helperText('Pilih salah satu sesuai jenis kelamin.'),
-
-                                            Forms\Components\TextInput::make('phone_number')
+                                                ->helperText('Pilih salah satu sesuai jenis kelamin Anda.')
+                                                ->columnSpanFull(),
+                                            TextInput::make('phone_number')
                                                 ->label('Nomor Telepon')
                                                 ->minLength(10)
                                                 ->maxLength(15)
+                                                ->numeric()
+                                                ->unique()
                                                 ->placeholder('Masukkan nomor telepon aktif')
-                                                ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.'),
-
-                                            Forms\Components\Hidden::make('created_by')
-                                                ->default(fn() => Auth::id()),
-
-                                            Forms\Components\Hidden::make('updated_by')
-                                                ->default(fn() => Auth::id())
-                                                ->dehydrated(false)
+                                                ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.')
+                                                ->columnSpanFull(),
                                         ])
-
-                                        ->columns(1)
-                                        ->label('Informasi Personal'),
-
-                                    Forms\Components\Fieldset::make('Alamat')
-                                        ->schema([
-                                            // Forms\Components\Select::make('health_center_id')
-                                            //     ->label('Puskesmas')
-                                            //     ->relationship('healthCenter', 'name')
-                                            //     ->placeholder('Pilih puskesmas tempat Anda terdaftar')
-                                            //     ->searchable()
-                                            //     ->preload()
-                                            //     ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
-
-                                            Forms\Components\Textarea::make('address.street')
-                                                ->label('Jalan')
-                                                ->placeholder('Masukkan nama jalan')
-                                                ->helperText('Cantumkan nama jalan tempat Anda tinggal saat ini.'),
-
-                                            Forms\Components\Select::make('address.district_code')
-                                                ->label('Kecamatan')
-                                                ->options(District::pluck('district_name', 'district_code'))
-                                                ->searchable()
-                                                ->reactive()
-                                                ->placeholder('Pilih kecamatan')
-                                                ->helperText('Isi dengan kecamatan tempat tinggal Anda.')
-                                                ->afterStateUpdated(function ($set) {
-                                                    $set('address.subdistrict_code', null);
-                                                }),
-
-                                            Forms\Components\Select::make('address.subdistrict_code')
-                                                ->label('Kelurahan')
-                                                ->options(function (callable $get) {
-                                                    $districtCode = $get('address.district_code');
-                                                    return $districtCode
-                                                        ? Subdistrict::where('district_code', $districtCode)->pluck('subdistrict_name', 'subdistrict_code')
-                                                        : [];
-                                                })
-                                                ->searchable()
-                                                ->placeholder('Pilih kelurahan')
-                                                ->helperText('Isi dengan kelurahan tempat tinggal Anda.'),
-
-                                            Forms\Components\TextInput::make('address.rt')
-                                                ->label('RT')
-                                                ->maxLength(3)
-                                                ->minLength(3)
-                                                ->placeholder('Masukkan RT (3 digit)')
-                                                ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
-                                                ->numeric()
-                                                ->columnSpan(1),
-
-                                            Forms\Components\TextInput::make('address.rw')
-                                                ->label('RW')
-                                                ->maxLength(3)
-                                                ->minLength(3)
-                                                ->placeholder('Masukkan RW (3 digit)')
-                                                ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
-                                                ->numeric()
-                                                ->columnSpan(1),
-                                        ])
-                                        ->columns(1)
-                                        ->label('Detail Alamat'),
+                                        ->columnSpanFull(),
                                 ]),
 
                             Select::make('risk_level')
                                 ->label('Tingkat Resiko')
+                                ->validationMessages([
+                                    'required' => 'Tingkat Resiko wajib diisi.',
+                                ])
                                 ->options([
                                     'R' => 'Rendah',
                                     'S' => 'Sedang',
@@ -180,22 +145,26 @@ class PdamRelationManager extends RelationManager
                             Forms\Components\TextInput::make('remaining_chlorine')
                                 ->label('Sisa Chlor')
                                 ->placeholder('Masukkan nilai sisa chlor')
-                                ->helperText('Isi dengan hasil pengukuran sisa chlor.'),
+                                ->helperText('Isi dengan hasil pengukuran sisa chlor.')
+                                ->numeric(),
 
                             Forms\Components\TextInput::make('ph')
                                 ->label('pH')
                                 ->placeholder('Masukkan nilai pH')
-                                ->helperText('Isi dengan hasil pengukuran pH.'),
+                                ->helperText('Isi dengan hasil pengukuran pH.')
+                                ->numeric(),
 
                             Forms\Components\TextInput::make('tds_measurement')
                                 ->label('TDS Pengukuran')
                                 ->placeholder('Masukkan nilai TDS')
-                                ->helperText('Isi dengan hasil pengukuran Total Dissolved Solids (TDS).'),
+                                ->helperText('Isi dengan hasil pengukuran Total Dissolved Solids (TDS).')
+                                ->numeric(),
 
                             Forms\Components\TextInput::make('temperature_measurement')
                                 ->label('Suhu Pengukuran')
                                 ->placeholder('Masukkan suhu')
-                                ->helperText('Isi dengan hasil pengukuran suhu air.'),
+                                ->helperText('Isi dengan hasil pengukuran suhu air.')
+                                ->numeric(),
                         ]),
 
                     Wizard\Step::make('Hasil Pemeriksaan Lab')
@@ -208,31 +177,36 @@ class PdamRelationManager extends RelationManager
                                     Forms\Components\TextInput::make('total_coliform')
                                         ->label('Total Coliform')
                                         ->placeholder('Masukkan nilai Total Coliform')
-                                        ->helperText('Isi dengan hasil tes Total Coliform.'),
+                                        ->helperText('Isi dengan hasil tes Total Coliform.')
+                                        ->numeric(),
 
                                     Forms\Components\TextInput::make('e_coli')
                                         ->label('E.Coli')
                                         ->placeholder('Masukkan nilai E.Coli')
-                                        ->helperText('Isi dengan hasil tes E.Coli.'),
+                                        ->helperText('Isi dengan hasil tes E.Coli.')
+                                        ->numeric(),
                                 ]),
 
                             // Fisika
                             Forms\Components\Fieldset::make('Fisika')
                                 ->schema([
-                                    Forms\Components\TextInput::make('tds')
+                                    Forms\Components\TextInput::make('tds_lab')
                                         ->label('TDS')
                                         ->placeholder('Masukkan nilai TDS')
-                                        ->helperText('Isi dengan hasil tes TDS.'),
+                                        ->helperText('Isi dengan hasil tes TDS.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('kekeruhan')
+                                    Forms\Components\TextInput::make('turbidity')
                                         ->label('Kekeruhan')
                                         ->placeholder('Masukkan nilai Kekeruhan')
-                                        ->helperText('Isi dengan hasil tes Kekeruhan.'),
+                                        ->helperText('Isi dengan hasil tes Kekeruhan.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('warna')
+                                    Forms\Components\TextInput::make('color')
                                         ->label('Warna')
                                         ->placeholder('Masukkan nilai Warna')
-                                        ->helperText('Isi dengan hasil tes Warna.'),
+                                        ->helperText('Isi dengan hasil tes Warna.')
+                                        ->numeric(),
 
                                     Forms\Components\Select::make('odor')
                                         ->label('Bau')
@@ -244,10 +218,11 @@ class PdamRelationManager extends RelationManager
                                         ->helperText('Pilih apakah air berbau atau tidak.'),
 
 
-                                    Forms\Components\TextInput::make('suhu')
+                                    Forms\Components\TextInput::make('temperature_lab')
                                         ->label('Suhu')
                                         ->placeholder('Masukkan suhu di laboratorium')
-                                        ->helperText('Isi dengan hasil pengukuran suhu dari lab.'),
+                                        ->helperText('Isi dengan hasil pengukuran suhu dari lab.')
+                                        ->numeric(),
                                 ]),
 
                             // Kimia
@@ -258,22 +233,25 @@ class PdamRelationManager extends RelationManager
                                         ->placeholder('Masukkan nilai Aluminium')
                                         ->helperText('Isi dengan hasil tes kadar Aluminium.'),
 
-                                    Forms\Components\TextInput::make('arsen')
+                                    Forms\Components\TextInput::make('arsenic')
                                         ->label('Arsen')
                                         ->placeholder('Masukkan nilai Arsen')
-                                        ->helperText('Isi dengan hasil tes kadar Arsen.'),
+                                        ->helperText('Isi dengan hasil tes kadar Arsen.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('kadmium')
+                                    Forms\Components\TextInput::make('cadmium')
                                         ->label('Kadmium')
                                         ->placeholder('Masukkan nilai Kadmium')
-                                        ->helperText('Isi dengan hasil tes kadar Kadmium.'),
+                                        ->helperText('Isi dengan hasil tes kadar Kadmium.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('sisa_khlor')
+                                    Forms\Components\TextInput::make('remaining_chlorine_lab')
                                         ->label('Sisa Khlor')
                                         ->placeholder('Masukkan nilai Sisa Khlor')
-                                        ->helperText('Isi dengan hasil tes kadar Sisa Khlor.'),
+                                        ->helperText('Isi dengan hasil tes kadar Sisa Khlor.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('chrom_val_6')
+                                    Forms\Components\TextInput::make('chromium_val_6')
                                         ->label('Crom Val 6')
                                         ->placeholder('Masukkan nilai Crom Val 6')
                                         ->helperText('Isi dengan hasil tes kadar Crom Val 6.'),
@@ -281,37 +259,44 @@ class PdamRelationManager extends RelationManager
                                     Forms\Components\TextInput::make('fluoride')
                                         ->label('Florida')
                                         ->placeholder('Masukkan nilai Fluoride')
-                                        ->helperText('Isi dengan hasil tes kadar Fluoride.'),
+                                        ->helperText('Isi dengan hasil tes kadar Fluoride.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('besi')
+                                    Forms\Components\TextInput::make('iron')
                                         ->label('Besi')
                                         ->placeholder('Masukkan nilai Besi')
-                                        ->helperText('Isi dengan hasil tes kadar Besi.'),
+                                        ->helperText('Isi dengan hasil tes kadar Besi.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('timbal')
+                                    Forms\Components\TextInput::make('lead')
                                         ->label('Timbal')
                                         ->placeholder('Masukkan nilai Timbal')
-                                        ->helperText('Isi dengan hasil tes kadar Timbal.'),
+                                        ->helperText('Isi dengan hasil tes kadar Timbal.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('mangan')
+                                    Forms\Components\TextInput::make('manganese')
                                         ->label('Mangan')
                                         ->placeholder('Masukkan nilai Mangan')
-                                        ->helperText('Isi dengan hasil tes kadar Mangan.'),
+                                        ->helperText('Isi dengan hasil tes kadar Mangan.')
+                                        ->numeric(),
 
                                     Forms\Components\TextInput::make('nitrite')
                                         ->label('Nitrit')
                                         ->placeholder('Masukkan nilai Nitrit')
-                                        ->helperText('Isi dengan hasil tes kadar Nitrit.'),
+                                        ->helperText('Isi dengan hasil tes kadar Nitrit.')
+                                        ->numeric(),
 
                                     Forms\Components\TextInput::make('nitrate')
                                         ->label('Nitrat')
                                         ->placeholder('Masukkan nilai Nitrat')
-                                        ->helperText('Isi dengan hasil tes kadar Nitrat.'),
+                                        ->helperText('Isi dengan hasil tes kadar Nitrat.')
+                                        ->numeric(),
 
-                                    Forms\Components\TextInput::make('ph')
+                                    Forms\Components\TextInput::make('ph_lab')
                                         ->label('pH')
                                         ->placeholder('Masukkan nilai pH')
                                         ->helperText('Isi dengan hasil tes kadar pH air.')
+                                        ->numeric(),
                                 ])
                         ]),
 
@@ -341,147 +326,156 @@ class PdamRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('sampling_date')
                     ->label('Tanggal Sampling')
-                    ->date()
+                    ->date('d F Y')
                     ->sortable(),
 
                 // Patient Information
                 TextColumn::make('patient.name')
                     ->label('Nama Pasien')
-                    ->sortable()
                     ->searchable(),
 
                 TextColumn::make('patient.nik')
                     ->label('NIK')
-                    ->sortable()
                     ->searchable(),
 
-                TextColumn::make('patient.date_of_birth')
-                    ->label('Tanggal Lahir')
-                    ->date()
-                    ->sortable(),
+                // TextColumn::make('patient.date_of_birth')
+                //     ->label('Tanggal Lahir')
+                //     ->date()
+                //     ->sortable(),
 
-                TextColumn::make('patient.gender')
-                    ->label('Jenis Kelamin')
-                    ->sortable(),
+                // TextColumn::make('patient.gender')
+                //     ->label('Jenis Kelamin')
+                //     ->sortable(),
 
-                TextColumn::make('patient.phone_number')
-                    ->label('Nomor Telepon')
-                    ->sortable(),
+                // TextColumn::make('patient.phone_number')
+                //     ->label('Nomor Telepon')
+                //     ->sortable(),
 
                 // Address Information
                 TextColumn::make('patient.address.street')
-                    ->label('Alamat Jalan')
-                    ->sortable()
+                    ->label('Alamat')
                     ->searchable(),
 
-                TextColumn::make('patient.address.district_code')
-                    ->label('Kode Kecamatan')
-                    ->sortable(),
+                // TextColumn::make('patient.address.district_code')
+                //     ->label('Kode Kecamatan')
+                //     ->sortable(),
 
-                TextColumn::make('patient.address.subdistrict_code')
-                    ->label('Kode Kelurahan')
-                    ->sortable(),
+                // TextColumn::make('patient.address.subdistrict_code')
+                //     ->label('Kode Kelurahan')
+                //     ->sortable(),
 
                 // PDAM Resource Information
                 TextColumn::make('risk_level')
                     ->label('Tingkat Resiko')
-                    ->sortable(),
+                    ->formatStateUsing(function ($state) {
+                        return match ($state) {
+                            TingkatResiko::Rendah => 'Rendah',
+                            TingkatResiko::Sedang => 'Sedang',
+                            TingkatResiko::Tinggi => 'Tinggi',
+                            TingkatResiko::SangatTinggi => 'Sangat Tinggi',
+                            default => '-',
+                        };
+                    })
+                    ->sortable()
+                    ->searchable(),
 
-                TextColumn::make('remaining_chlorine')
-                    ->label('Sisa Chlor')
-                    ->sortable(),
 
-                TextColumn::make('ph')
-                    ->label('pH')
-                    ->sortable(),
+                // TextColumn::make('remaining_chlorine')
+                //     ->label('Sisa Chlor')
+                //     ->sortable(),
 
-                TextColumn::make('tds_measurement')
-                    ->label('TDS Pengukuran')
-                    ->sortable(),
+                // TextColumn::make('ph')
+                //     ->label('pH')
+                //     ->sortable(),
 
-                TextColumn::make('temperature_measurement')
-                    ->label('Suhu Pengukuran')
-                    ->sortable(),
+                // TextColumn::make('tds_measurement')
+                //     ->label('TDS Pengukuran')
+                //     ->sortable(),
 
-                TextColumn::make('total_coliform')
-                    ->label('Total Coliform')
-                    ->sortable(),
+                // TextColumn::make('temperature_measurement')
+                //     ->label('Suhu Pengukuran')
+                //     ->sortable(),
 
-                TextColumn::make('e_coli')
-                    ->label('E. Coli')
-                    ->sortable(),
+                // TextColumn::make('total_coliform')
+                //     ->label('Total Coliform')
+                //     ->sortable(),
 
-                TextColumn::make('tds_lab')
-                    ->label('TDS Lab')
-                    ->sortable(),
+                // TextColumn::make('e_coli')
+                //     ->label('E. Coli')
+                //     ->sortable(),
 
-                TextColumn::make('turbidity')
-                    ->label('Kekeruhan')
-                    ->sortable(),
+                // TextColumn::make('tds_lab')
+                //     ->label('TDS Lab')
+                //     ->sortable(),
 
-                TextColumn::make('color')
-                    ->label('Warna'),
+                // TextColumn::make('turbidity')
+                //     ->label('Kekeruhan')
+                //     ->sortable(),
 
-                TextColumn::make('odor')
-                    ->label('Bau'),
+                // TextColumn::make('color')
+                //     ->label('Warna'),
 
-                TextColumn::make('temperature_lab')
-                    ->label('Suhu Lab')
-                    ->sortable(),
+                // TextColumn::make('odor')
+                //     ->label('Bau'),
 
-                TextColumn::make('aluminium')
-                    ->label('Aluminium')
-                    ->sortable(),
+                // TextColumn::make('temperature_lab')
+                //     ->label('Suhu Lab')
+                //     ->sortable(),
 
-                TextColumn::make('arsenic')
-                    ->label('Arsen')
-                    ->sortable(),
+                // TextColumn::make('aluminium')
+                //     ->label('Aluminium')
+                //     ->sortable(),
 
-                TextColumn::make('cadmium')
-                    ->label('Kadmium')
-                    ->sortable(),
+                // TextColumn::make('arsenic')
+                //     ->label('Arsen')
+                //     ->sortable(),
 
-                TextColumn::make('remaining_chlorine_lab')
-                    ->label('Sisa Khlor')
-                    ->sortable(),
+                // TextColumn::make('cadmium')
+                //     ->label('Kadmium')
+                //     ->sortable(),
 
-                TextColumn::make('chromium_val_6')
-                    ->label('Crom Val 6')
-                    ->sortable(),
+                // TextColumn::make('remaining_chlorine_lab')
+                //     ->label('Sisa Khlor')
+                //     ->sortable(),
 
-                TextColumn::make('fluoride')
-                    ->label('Florida')
-                    ->sortable(),
+                // TextColumn::make('chromium_val_6')
+                //     ->label('Crom Val 6')
+                //     ->sortable(),
 
-                TextColumn::make('iron')
-                    ->label('Besi')
-                    ->sortable(),
+                // TextColumn::make('fluoride')
+                //     ->label('Florida')
+                //     ->sortable(),
 
-                TextColumn::make('lead')
-                    ->label('Timbal')
-                    ->sortable(),
+                // TextColumn::make('iron')
+                //     ->label('Besi')
+                //     ->sortable(),
 
-                TextColumn::make('manganese')
-                    ->label('Mangan')
-                    ->sortable(),
+                // TextColumn::make('lead')
+                //     ->label('Timbal')
+                //     ->sortable(),
 
-                TextColumn::make('nitrite')
-                    ->label('Nitrit')
-                    ->sortable(),
+                // TextColumn::make('manganese')
+                //     ->label('Mangan')
+                //     ->sortable(),
 
-                TextColumn::make('nitrate')
-                    ->label('Nitrat')
-                    ->sortable(),
+                // TextColumn::make('nitrite')
+                //     ->label('Nitrit')
+                //     ->sortable(),
 
-                TextColumn::make('ph_lab')
-                    ->label('pH Lab')
-                    ->sortable(),
+                // TextColumn::make('nitrate')
+                //     ->label('Nitrat')
+                //     ->sortable(),
+
+                // TextColumn::make('ph_lab')
+                //     ->label('pH Lab')
+                //     ->sortable(),
 
                 // Additional Notes
                 TextColumn::make('notes')
                     ->label('Keterangan')
-                    ->sortable()
-                    ->searchable(),
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->notes),
+
             ])
             ->filters([
                 //
@@ -490,7 +484,7 @@ class PdamRelationManager extends RelationManager
                 $user = Auth::user();
 
                 // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
-                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
                     return $query;
                 }
 
@@ -513,6 +507,7 @@ class PdamRelationManager extends RelationManager
             })
             ->headerActions([
                 Tables\Actions\CreateAction::make()
+                    ->disableCreateAnother()
                     ->label('Buat Formulir PDAM')
                     ->modalHeading('Buat Formulir PDAM')
                     ->modalButton('Buat Formulir')
@@ -533,17 +528,22 @@ class PdamRelationManager extends RelationManager
 
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                ->modalHeading('Lihat Data PDAM'),
                 Tables\Actions\EditAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['updated_by'] = Auth::id();
                         return $data;
-                    }),
-                Tables\Actions\DeleteAction::make(),
+                    })
+                    ->modalHeading('Ubah Data PDAM'),
+                Tables\Actions\DeleteAction::make()
+                ->modalHeading('Hapus Data PDAM'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            // ->bulkActions([
+            //     Tables\Actions\BulkActionGroup::make([
+            //         Tables\Actions\DeleteBulkAction::make(),
+            //     ]),
+            // ])
+        ;
     }
 }

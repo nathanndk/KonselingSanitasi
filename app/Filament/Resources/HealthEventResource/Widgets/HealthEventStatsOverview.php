@@ -5,6 +5,7 @@ namespace App\Filament\Resources\HealthEventResource\Widgets;
 use App\Models\HealthEvent;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 
 class HealthEventStatsOverview extends BaseWidget
@@ -14,14 +15,77 @@ class HealthEventStatsOverview extends BaseWidget
      */
     protected static bool $canSpanColumns = true;
 
+    /**
+     * Batasi widget agar hanya bisa dilihat oleh role tertentu
+     */
+    public static function canView(): bool
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Role yang diperbolehkan
+        return in_array($user->role, ['admin', 'dinas_kesehatan', 'puskesmas', 'petugas', 'kader']);
+    }
+
+    /**
+     * Menerapkan filter berdasar role user
+     */
+    private function applyRoleFilter($query)
+    {
+        $user = Auth::user();
+
+        // Jika user tidak terotentikasi atau role tidak dikenali, kembalikan query yang tidak menghasilkan data
+        if (!$user) {
+            return $query->where('id', -1);
+        }
+
+        switch ($user->role) {
+            case 'admin':
+            case 'dinas_kesehatan':
+                // Melihat semua event => tidak ada filter tambahan
+                break;
+
+            case 'puskesmas':
+                // Hanya event yang terkait puskesmas-nya
+                // Asumsikan ada relasi user->healthCenter
+                $query->whereHas('user.healthCenter', function ($q) use ($user) {
+                    $q->where('id', $user->health_center_id);
+                });
+                break;
+
+            case 'petugas':
+            case 'kader':
+                // Hanya event yang dibuat oleh user tersebut
+                // Asumsikan ada kolom created_by di tabel HealthEvent
+                $query->where('created_by', $user->id);
+                break;
+
+            default:
+                // Role lain tidak boleh melihat apa pun
+                $query->where('id', -1);
+                break;
+        }
+
+        return $query;
+    }
+
     protected function getStats(): array
     {
-        // Mendapatkan event terdekat berdasarkan tanggal hari ini atau mendatang
-        $nextEvent = HealthEvent::where('event_date', '>=', Carbon::today())
+        // Query event yang akan difilter sesuai role user
+        $filteredEventQuery = $this->applyRoleFilter(
+            HealthEvent::query()->where('event_date', '>=', Carbon::today())
+        );
+
+        // Mendapatkan event terdekat
+        $nextEvent = (clone $filteredEventQuery)
             ->orderBy('event_date', 'asc')
             ->first();
 
-        $eventsCount = HealthEvent::where('event_date', '>=', Carbon::today())->count();
+        // Jumlah event mendatang
+        $eventsCount = (clone $filteredEventQuery)->count();
 
         return [
             Stat::make('Acara Terdekat', $nextEvent?->title ?? 'Tidak Ada Event')

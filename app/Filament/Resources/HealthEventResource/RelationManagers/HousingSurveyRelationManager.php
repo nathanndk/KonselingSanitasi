@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\HealthEventResource\RelationManagers;
 
 use App\Models\District;
+use App\Models\Patient;
 use App\Models\Subdistrict;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -21,6 +22,9 @@ class HousingSurveyRelationManager extends RelationManager
 {
     protected static string $relationship = 'HousingSurvey';
 
+    protected static ?string $title = 'Rumah Sehat';
+
+
     public function form(Form $form): Form
     {
         return $form
@@ -38,124 +42,84 @@ class HousingSurveyRelationManager extends RelationManager
                             //     ->helperText('Masukkan tanggal kunjungan rumah sesuai jadwal.'),
 
                             Select::make('patient_id')
-                                ->label('Nama Pasien')
-                                ->searchable()
-                                ->relationship('patient', 'name')
-                                ->required()
-                                ->preload()
-                                ->helperText('Pilih pasien dari daftar. Anda juga dapat menambahkan pasien baru.')
-                                ->createOptionForm([
-                                    Forms\Components\Fieldset::make('Informasi Personal')
-                                        ->schema([
-                                            Forms\Components\TextInput::make('nik')
-                                                ->label('NIK')
-                                                ->maxLength(16)
-                                                ->minLength(16)
-                                                ->placeholder('Masukkan NIK 16 digit')
-                                                ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat pada KTP.'),
+                            ->label('Nama Pasien')
+                            ->searchable()
+                            ->columnSpanFull()
+                            ->getSearchResultsUsing(
+                                fn(string $search): array =>
+                                Patient::query()
+                                    ->where('nik', 'like', "%{$search}%") // Pencarian berdasarkan NIK
+                                    ->orWhere('name', 'like', "%{$search}%") // Tambahkan pencarian nama jika dibutuhkan
+                                    ->limit(50)
+                                    ->get()
+                                    ->mapWithKeys(fn($patient) => [$patient->id => "{$patient->name} ({$patient->nik})"]) // Format: Nama (NIK)
+                                    ->toArray()
+                            )
+                            ->getOptionLabelUsing(
+                                fn($value): ?string =>
+                                Patient::find($value)?->name // Tampilkan hanya Nama Pasien saat dipilih
+                            )
+                            ->required()
+                            ->placeholder('Pilih nama pasien')
+                            ->helperText('Cari pasien menggunakan NIK atau nama.')
+                            ->createOptionForm([
+                                // Form pembuatan pasien baru tetap diisi sesuai kebutuhan Anda
+                                Forms\Components\Fieldset::make('Informasi Personal')
+                                    ->schema([
+                                        TextInput::make('nik')
+                                            ->label('NIK')
+                                            ->maxLength(16)
+                                            ->minLength(16)
+                                            ->unique()
+                                            ->placeholder('Masukkan NIK 16 digit')
+                                            ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat di KTP.')
+                                            ->numeric()
+                                            ->columnSpanFull(),
+                                        TextInput::make('name')
+                                            ->label('Nama')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->placeholder('Masukkan nama lengkap Anda sesuai KTP')
+                                            ->helperText('Gunakan nama sesuai identitas resmi.')
+                                            ->columnSpanFull(),
+                                        DatePicker::make('date_of_birth')
+                                            ->label('Tanggal Lahir')
+                                            ->required()
+                                            ->rule('before_or_equal:today')
+                                            ->placeholder('Pilih tanggal lahir')
+                                            ->helperText('Masukkan tanggal lahir Anda.')
+                                            ->maxDate(now())
+                                            ->columnSpanFull(),
+                                        Select::make('gender')
+                                            ->label('Jenis Kelamin')
+                                            ->options([
+                                                'L' => 'Laki-laki',
+                                                'P' => 'Perempuan',
+                                            ])
+                                            ->required()
+                                            ->placeholder('Pilih jenis kelamin')
+                                            ->helperText('Pilih salah satu sesuai jenis kelamin Anda.')
+                                            ->columnSpanFull(),
+                                        TextInput::make('phone_number')
+                                            ->label('Nomor Telepon')
+                                            ->minLength(10)
+                                            ->maxLength(15)
+                                            ->unique()
+                                            ->placeholder('Masukkan nomor telepon aktif')
+                                            ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.')
+                                            ->numeric()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columnSpanFull(),
+                            ])
+                            ->createOptionUsing(function (array $data): int {
+                                // Logika penyimpanan data baru
+                                $record = Patient::create($data);
 
-                                            Forms\Components\TextInput::make('name')
-                                                ->label('Nama')
-                                                ->required()
-                                                ->maxLength(50)
-                                                ->placeholder('Masukkan nama lengkap')
-                                                ->helperText('Gunakan nama sesuai identitas resmi.'),
+                                // Mengembalikan primary key dari record yang baru dibuat
+                                return $record->getKey();
+                            }),
 
-                                            Forms\Components\DatePicker::make('date_of_birth')
-                                                ->label('Tanggal Lahir')
-                                                ->required()
-                                                ->rule('before_or_equal:today')
-                                                ->placeholder('Pilih tanggal lahir')
-                                                ->helperText('Masukkan tanggal lahir sesuai dokumen resmi.')
-                                                ->maxDate(now()),
-
-                                            Forms\Components\Select::make('gender')
-                                                ->label('Jenis Kelamin')
-                                                ->options([
-                                                    'L' => 'Laki-laki',
-                                                    'P' => 'Perempuan',
-                                                ])
-                                                ->required()
-                                                ->placeholder('Pilih jenis kelamin')
-                                                ->helperText('Pilih salah satu sesuai jenis kelamin.'),
-
-                                            Forms\Components\TextInput::make('phone_number')
-                                                ->label('Nomor Telepon')
-                                                ->minLength(10)
-                                                ->maxLength(15)
-                                                ->placeholder('Masukkan nomor telepon aktif')
-                                                ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.'),
-
-                                            Forms\Components\Hidden::make('created_by')
-                                                ->default(fn() => Auth::id()),
-
-                                            Forms\Components\Hidden::make('updated_by')
-                                                ->default(fn() => Auth::id())
-                                                ->dehydrated(false)
-                                        ])
-
-                                        ->columns(1)
-                                        ->label('Informasi Personal'),
-
-                                    Forms\Components\Fieldset::make('Alamat')
-                                        ->schema([
-                                            // Forms\Components\Select::make('health_center_id')
-                                            //     ->label('Puskesmas')
-                                            //     ->relationship('healthCenter', 'name')
-                                            //     ->placeholder('Pilih puskesmas tempat Anda terdaftar')
-                                            //     ->searchable()
-                                            //     ->preload()
-                                            //     ->helperText('Pilih puskesmas sesuai tempat Anda terdaftar.'),
-
-                                            Forms\Components\Textarea::make('address.street')
-                                                ->label('Jalan')
-                                                ->placeholder('Masukkan nama jalan')
-                                                ->helperText('Cantumkan nama jalan tempat Anda tinggal saat ini.'),
-
-                                            Forms\Components\Select::make('address.district_code')
-                                                ->label('Kecamatan')
-                                                ->options(District::pluck('district_name', 'district_code'))
-                                                ->searchable()
-                                                ->reactive()
-                                                ->placeholder('Pilih kecamatan')
-                                                ->helperText('Isi dengan kecamatan tempat tinggal Anda.')
-                                                ->afterStateUpdated(function ($set) {
-                                                    $set('address.subdistrict_code', null);
-                                                }),
-
-                                            Forms\Components\Select::make('address.subdistrict_code')
-                                                ->label('Kelurahan')
-                                                ->options(function (callable $get) {
-                                                    $districtCode = $get('address.district_code');
-                                                    return $districtCode
-                                                        ? Subdistrict::where('district_code', $districtCode)->pluck('subdistrict_name', 'subdistrict_code')
-                                                        : [];
-                                                })
-                                                ->searchable()
-                                                ->placeholder('Pilih kelurahan')
-                                                ->helperText('Isi dengan kelurahan tempat tinggal Anda.'),
-
-                                            Forms\Components\TextInput::make('address.rt')
-                                                ->label('RT')
-                                                ->maxLength(3)
-                                                ->minLength(3)
-                                                ->placeholder('Masukkan RT (3 digit)')
-                                                ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
-                                                ->numeric()
-                                                ->columnSpan(1),
-
-                                            Forms\Components\TextInput::make('address.rw')
-                                                ->label('RW')
-                                                ->maxLength(3)
-                                                ->minLength(3)
-                                                ->placeholder('Masukkan RW (3 digit)')
-                                                ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
-                                                ->numeric()
-                                                ->columnSpan(1),
-                                        ])
-                                        ->columns(1)
-                                        ->label('Detail Alamat'),
-                                ]),
 
                             Forms\Components\TextInput::make('diagnosed_disease')
                                 ->label('Dalam 1 bulan terakhir apakah ada anggota rumah tangga yang pernah di diagnosis menderita (Diare/DBD/Leptospirosis/Stunting/TBC/Ispa/Pneumonia/Scabies) ')
@@ -592,21 +556,25 @@ class HousingSurveyRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('sampling_date')
                     ->label('Tanggal Kunjungan')
-                    ->date(),
+                    ->date('d F Y')
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('patient.name')
                     ->label('Nama Pasien')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('patient.address.street')
+                    ->label('Alamat Pasien')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('diagnosed_disease')
                     ->label('Penyakit yang Didiagnosis')
-                    ->limit(50),
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('head_of_family')
                     ->label('Nama Kepala Keluarga (KK)')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('drinking_water_source')
                     ->label('Sumber Air Minum')
@@ -617,7 +585,8 @@ class HousingSurveyRelationManager extends RelationManager
                         'MATA_AIR' => 'Mata Air',
                         'ISI_ULANG' => 'Isi Ulang',
                         default => $state,
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('clean_water_source')
                     ->label('Sumber Air Bersih')
@@ -628,7 +597,8 @@ class HousingSurveyRelationManager extends RelationManager
                         'MATA_AIR' => 'Mata Air',
                         'ISI_ULANG' => 'Isi Ulang',
                         default => $state,
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('last_education')
                     ->label('Pendidikan Terakhir Kepala Keluarga')
@@ -644,7 +614,8 @@ class HousingSurveyRelationManager extends RelationManager
                         'S3' => 'S3',
                         default => $state,
                     })
-                    ->limit(20),
+                    ->limit(20)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('job')
                     ->label('Pekerjaan Kepala Keluarga')
@@ -657,11 +628,12 @@ class HousingSurveyRelationManager extends RelationManager
                         'WIRASWASTA' => 'Wiraswasta',
                         'SUPIR' => 'Supir',
                         default => $state,
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('family_members')
                     ->label('Jumlah Jiwa dalam KK')
-                    ->sortable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('house_ownership')
                     ->label('Status Kepemilikan Rumah')
@@ -669,12 +641,12 @@ class HousingSurveyRelationManager extends RelationManager
                         'rumah_sendiri' => 'Rumah Sendiri',
                         'kontrak' => 'Rumah Kontrak',
                         default => $state,
-                    }),
-
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('house_area')
                     ->label('Luas Rumah (m²)')
-                    ->sortable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -683,7 +655,7 @@ class HousingSurveyRelationManager extends RelationManager
                 $user = Auth::user();
 
                 // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
-                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
                     return $query;
                 }
 
@@ -725,17 +697,22 @@ class HousingSurveyRelationManager extends RelationManager
                     }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                ->modalHeading('Lihat Data Rumah Sehat'),
                 Tables\Actions\EditAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['updated_by'] = Auth::id();
                         return $data;
-                    }),
-                Tables\Actions\DeleteAction::make(),
+                    })
+                    ->modalHeading('Ubah Data Rumah Sehat'),
+                Tables\Actions\DeleteAction::make()
+                ->modalHeading('Hapus Data Rumah Sehat'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            // ->bulkActions([
+            //     Tables\Actions\BulkActionGroup::make([
+            //         Tables\Actions\DeleteBulkAction::make(),
+            //     ]),
+            // ])
+        ;
     }
 }

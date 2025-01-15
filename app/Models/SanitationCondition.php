@@ -22,10 +22,6 @@ class SanitationCondition extends Model
     ];
 
 
-    public function counselingReports()
-    {
-        return $this->hasMany(CounselingReport::class);
-    }
 
     public function patient()
     {

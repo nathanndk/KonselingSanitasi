@@ -11,15 +11,10 @@ class CreatePatientsTable extends Migration
         Schema::create('patients', function (Blueprint $table) {
             $table->id();
             $table->string('nik', 16)->unique();
-            $table->string('name');
+            $table->string('name',50);
             $table->date('date_of_birth');
-            $table->string('gender');
+            $table->string('gender', 1);
             $table->string('phone_number')->nullable();
-            $table->unsignedSmallInteger('rt')->nullable();
-            $table->unsignedSmallInteger('rw')->nullable();
-
-            // $table->foreignId('health_center_id')->nullable()->constrained('address');
-            // $table->foreignId('event_id')->nullable()->default(null)->constrained('health_events')->cascadeOnDelete();
             $table->foreignId('address_id')->nullable()->constrained('address');
             $table->foreignId('created_by')->nullable()->default(null)->constrained('users');
             $table->timestamps();

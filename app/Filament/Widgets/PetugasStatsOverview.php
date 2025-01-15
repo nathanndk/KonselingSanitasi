@@ -40,8 +40,7 @@ class PetugasStatsOverview extends BaseWidget
         $userId = Auth::id(); // ID pengguna yang sedang login
 
         // Filter queries based on selected start and end date and created_by user
-        $totalPatients = Patient::where('created_by', $userId)
-                                ->when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
+        $totalPatients = Patient::when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
                                 ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
                                 ->count();
 

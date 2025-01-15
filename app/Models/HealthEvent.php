@@ -13,21 +13,6 @@ class HealthEvent extends Model
         'title', 'description', 'start_time', 'end_time', 'created_by', 'updated_by', 'event_date','health_center_id'
     ];
 
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function updater()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    public function statuses()
-    {
-        return $this->hasMany(EventStatus::class, 'event_id');
-    }
-
     public function patient()
     {
         return $this->belongsToMany(Patient::class, 'event_id');

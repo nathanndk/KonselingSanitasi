@@ -176,13 +176,8 @@ class HousingSurvey extends Model
         return $this->belongsTo(HealthEvent::class, 'event_id');
     }
 
-    public function creator()
+    public function user()
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function updater()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
     }
 }

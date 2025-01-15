@@ -16,7 +16,6 @@ class Login extends BaseAuth
                     ->schema([
                         $this->getLoginFormComponent(),
                         $this->getPasswordFormComponent(),
-                        $this->getRememberFormComponent(),
                     ])
                     ->statePath('data'),
             ),
@@ -48,4 +47,6 @@ class Login extends BaseAuth
             'password' => $data['password'],
         ];
     }
+
+
 }

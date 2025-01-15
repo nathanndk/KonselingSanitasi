@@ -50,56 +50,108 @@ class HealthEventResource extends Resource
                             ->schema([
                                 Select::make('health_center_id')
                                     ->label('Puskesmas')
-                                    ->relationship('healthCenter', 'name')  // Ensure 'healthCenter' is the correct relationship method in your HealthEvent model
-                                    ->helperText('Pilih tempat puskesmas anda terdaftar.')
-                                    ->placeholder('Pilih puskesmas anda')
+                                    ->relationship('healthCenter', 'name')
+                                    ->helperText('Pilih puskesmas tempat acara akan berlangsung.')
+                                    ->placeholder('Pilih puskesmas')
                                     ->searchable()
                                     ->preload()
                                     ->columnSpanFull()
                                     ->required()
-                                    ->hidden(fn() => Auth::user()->role !== 'admin'),
+                                    ->hidden(fn() => !in_array(Auth::user()->role, ['admin', 'dinas_kesehatan'])),
 
-                                TextInput::make('title')
+                                    TextInput::make('title')
                                     ->label('Judul Acara')
                                     ->required()
+                                    ->unique(
+                                        table: 'health_events', // Nama tabel
+                                        column: 'title',        // Kolom yang ingin divalidasi
+                                        ignorable: fn ($record) => $record // Mengabaikan record saat ini
+                                    )
+                                    ->placeholder('Masukkan judul acara kesehatan')
+                                    ->helperText('Judul acara harus unik dan maksimal 255 karakter.')
                                     ->columnSpanFull()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->minLength(3)
+                                    ->validationMessages([
+                                        'required' => 'Judul acara wajib diisi.',
+                                        'unique' => 'Judul acara sudah digunakan, masukkan judul yang berbeda.',
+                                        'max' => 'Judul acara tidak boleh lebih dari 255 karakter.',
+                                        'min' => 'Judul acara harus terdiri dari minimal 3 karakter.',
+                                    ]),
 
                                 Textarea::make('description')
                                     ->label('Deskripsi Acara')
                                     ->rows(3)
+                                    ->placeholder('Masukkan deskripsi acara kesehatan')
+                                    ->helperText('Berikan deskripsi singkat tentang acara kesehatan (maksimal 500 karakter).')
                                     ->columnSpanFull()
-                                    ->maxLength(500),
+                                    ->maxLength(500)
+                                    ->minLength(10)
+                                    ->validationMessages([
+                                        'required' => 'Deskripsi acara wajib diisi.',
+                                        'max' => 'Deskripsi acara tidak boleh lebih dari 500 karakter.',
+                                        'min' => 'Deskripsi acara harus terdiri dari minimal 10 karakter.',
+                                    ]),
 
                                 DatePicker::make('event_date')
                                     ->label('Tanggal Acara')
                                     ->required()
                                     ->minDate(today())
-                                    ->rule('date'),
+                                    ->placeholder('Pilih tanggal acara')
+                                    ->helperText('Tanggal acara tidak boleh sebelum hari ini.')
+                                    ->rule('date')
+                                    ->validationMessages([
+                                        'required' => 'Tanggal acara wajib diisi.',
+                                        'date' => 'Tanggal acara tidak valid.',
+                                        'after_or_equal' => 'Tanggal acara tidak bisa sebelum hari ini.',
+                                    ])
+                                    ->reactive()
+                                    ->afterStateUpdated(function ($state, callable $set) {
+                                        if ($state) {
+                                            $set('start_time', $state . ' 00:00:00');
+                                        }
+                                    }),
 
                                 DateTimePicker::make('start_time')
                                     ->label('Waktu Mulai')
                                     ->withoutSeconds()
                                     ->required()
+                                    ->minDate(today())
+                                    ->placeholder('Pilih waktu mulai acara')
+                                    ->helperText('Waktu mulai harus berada dalam tanggal acara yang dipilih.')
                                     ->rule('date')
                                     ->reactive()
                                     ->afterOrEqual(fn($get) => $get('event_date') ? $get('event_date') . ' 00:00:00' : now())
                                     ->beforeOrEqual(fn($get) => $get('event_date') ? $get('event_date') . ' 23:59:59' : now())
-                                    ->helperText('Waktu mulai harus pada tanggal acara yang dipilih'),
+                                    ->validationMessages([
+                                        'required' => 'Waktu mulai wajib diisi.',
+                                        'date' => 'Waktu mulai tidak valid.',
+                                        'after_or_equal' => 'Waktu mulai tidak bisa sebelum tanggal acara.',
+                                        'before_or_equal' => 'Waktu mulai tidak bisa lebih dari waktu acara.',
+                                    ]),
 
                                 DateTimePicker::make('end_time')
                                     ->label('Waktu Selesai')
                                     ->withoutSeconds()
                                     ->required()
+                                    ->minDate(today())
+                                    ->placeholder('Pilih waktu selesai acara')
+                                    ->helperText('Waktu selesai harus setelah waktu mulai.')
                                     ->rule('date')
                                     ->afterOrEqual('start_time')
                                     ->reactive()
-                                    ->helperText('Waktu selesai harus setelah waktu mulai, tidak harus pada hari yang sama'),
+                                    ->validationMessages([
+                                        'required' => 'Waktu selesai wajib diisi.',
+                                        'date' => 'Waktu selesai tidak valid.',
+                                        'after_or_equal' => 'Waktu selesai harus setelah waktu mulai.',
+                                    ]),
                             ])
                             ->columns(3),
                     ])
             ]);
     }
+
+
     public static function table(Table $table): Table
     {
         return $table
@@ -110,7 +162,8 @@ class HealthEventResource extends Resource
 
                 TextColumn::make('event_date')
                     ->label('Tanggal Acara')
-                    ->date(),
+                    ->date('d F Y')
+                    ->sortable(),
 
                 TextColumn::make('start_time')
                     ->label('Waktu Mulai')
@@ -132,40 +185,24 @@ class HealthEventResource extends Resource
             ])
             ->filters([])
             ->modifyQueryUsing(function (Builder $query) {
-                $user = Auth::user();
+                $user = auth()->user();
 
-                // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
+                // Jika admin atau dinas kesehatan, tidak ada pembatasan data
                 if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
                     return $query;
                 }
 
-                // Jika puskesmas, hanya melihat data terkait dengan health_center_id mereka
-                if (in_array($user->role, ['puskesmas','petugas', 'kader'])) {
+                // Jika puskesmas, petugas, atau kader, hanya melihat data terkait dengan health_center_id mereka
+                if (in_array($user->role, ['puskesmas', 'petugas', 'kader'])) {
                     return $query->where(function ($q) use ($user) {
-                        $q->whereHas('user.healthCenter', function ($subQuery) use ($user) {
-                            $subQuery->where('id', $user->health_center_id);
-                        })
-                        ->orWhereHas('healthCenter', function ($subQuery) use ($user) {
-                            $subQuery->where('id', $user->health_center_id);
-                        });
+                        $q->where('health_center_id', $user->health_center_id); // Filter berdasarkan health_center_id
                     });
                 }
 
-                // // Jika petugas atau kader, hanya melihat data dengan health_center_id yang sama
-                // if (in_array($user->role, ['petugas', 'kader'])) {
-                //     return $query->where(function ($q) use ($user) {
-                //         $q->whereHas('user.healthCenter', function ($subQuery) use ($user) {
-                //             $subQuery->where('id', $user->health_center_id);
-                //         })
-                //         ->orWhereHas('healthCenter', function ($subQuery) use ($user) {
-                //             $subQuery->where('id', $user->health_center_id);
-                //         });
-                //     });
-                // }
-
-                // Default, jika role lain
-                return $query->where('id', null); // Tidak menampilkan data apa pun
+                // Jika role lainnya, tidak boleh melihat data apa pun
+                return $query->where('id', null);
             })
+
 
 
             ->actions([
@@ -176,30 +213,17 @@ class HealthEventResource extends Resource
                         return $data;
                     })
                     ->label('Isi'),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                ->modalHeading('Hapus Data Acara Kesehatan'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
-
-
-    // public static function infolist(Infolist $infolist): Infolist
-    // {
-    //     return $infolist
-    //         ->schema([
-    //             TextEntry::make('title'),
-    //             TextEntry::make('slug'),
-    //             TextEntry::make('content'),
-    //         ]);
-    // }
-
-
     public static function getRelations(): array
     {
         return [
-                // PatientRelationManager::class,
             CounselingReportsRelationManager::class,
             HousingSurveyRelationManager::class,
             PdamRelationManager::class,
@@ -211,9 +235,12 @@ class HealthEventResource extends Resource
         return [
             'index' => Pages\ListHealthEvents::route('/'),
             'view' => Pages\ViewHealthEvent::route('/{record}'),
-            // 'create' => Pages\CreateHealthEvent::route('/create'),
             'edit' => Pages\EditHealthEvent::route('/{record}/edit'),
         ];
+    }
+    protected function getTitle(): string
+    {
+        return 'Ubah Acara Kesehatan';
     }
 }
 

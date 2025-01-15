@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\TingkatResiko;
 use App\Filament\Exports\PdamExporter;
 use App\Filament\Resources\PDAMResource\Pages;
 use App\Models\District;
@@ -263,160 +264,165 @@ class PDAMResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                TextColumn::make('sampling_date')
-                    ->label('Tanggal Sampling')
-                    ->date('d F Y')
-                    ->sortable(),
+        ->columns([
+            TextColumn::make('sampling_date')
+                ->label('Tanggal Sampling')
+                ->date('d F Y')
+                ->sortable(),
 
-                // Patient Information
-                TextColumn::make('patient.name')
-                    ->label('Nama Pasien')
-                    ->sortable()
-                    ->searchable(),
+            // Patient Information
+            TextColumn::make('patient.name')
+                ->label('Nama Pasien')
+                ->searchable(),
 
-                TextColumn::make('patient.nik')
-                    ->label('NIK')
-                    ->sortable()
-                    ->searchable(),
+            TextColumn::make('patient.nik')
+                ->label('NIK')
+                ->searchable(),
 
-                TextColumn::make('patient.date_of_birth')
-                    ->label('Tanggal Lahir')
-                    ->date('d F Y')
-                    ->sortable(),
+            // TextColumn::make('patient.date_of_birth')
+            //     ->label('Tanggal Lahir')
+            //     ->date()
+            //     ->sortable(),
 
-                TextColumn::make('patient.gender')
-                    ->label('Jenis Kelamin')
-                    ->formatStateUsing(function ($state) {
-                        return $state === 'L' ? 'Laki-laki' : ($state === 'P' ? 'Perempuan' : '-');
-                    })
-                    ->default('-')
-                    ->sortable(),
+            // TextColumn::make('patient.gender')
+            //     ->label('Jenis Kelamin')
+            //     ->sortable(),
 
-                TextColumn::make('patient.phone_number')
-                    ->label('Nomor Telepon')
-                    ->sortable(),
+            // TextColumn::make('patient.phone_number')
+            //     ->label('Nomor Telepon')
+            //     ->sortable(),
 
-                // Address Information
-                TextColumn::make('patient.address.street')
-                    ->label('Alamat Jalan')
-                    ->sortable()
-                    ->searchable(),
+            // Address Information
+            TextColumn::make('patient.address.street')
+                ->label('Alamat')
+                ->searchable(),
 
-                TextColumn::make('patient.address.district_code')
-                    ->label('Kode Kecamatan')
-                    ->sortable(),
+            // TextColumn::make('patient.address.district_code')
+            //     ->label('Kode Kecamatan')
+            //     ->sortable(),
 
-                TextColumn::make('patient.address.subdistrict_code')
-                    ->label('Kode Kelurahan')
-                    ->sortable(),
+            // TextColumn::make('patient.address.subdistrict_code')
+            //     ->label('Kode Kelurahan')
+            //     ->sortable(),
 
-                // PDAM Resource Information
-                TextColumn::make('risk_level')
-                    ->label('Tingkat Resiko')
-                    ->sortable(),
+            // PDAM Resource Information
+            TextColumn::make('risk_level')
+            ->label('Tingkat Resiko')
+            ->formatStateUsing(function ($state) {
+                return match ($state) {
+                    TingkatResiko::Rendah => 'Rendah',
+                    TingkatResiko::Sedang => 'Sedang',
+                    TingkatResiko::Tinggi => 'Tinggi',
+                    TingkatResiko::SangatTinggi => 'Sangat Tinggi',
+                    default => '-',
+                };
+            })
+            ->sortable()
+            ->searchable(),
 
-                TextColumn::make('remaining_chlorine')
-                    ->label('Sisa Chlor')
-                    ->sortable(),
 
-                TextColumn::make('ph')
-                    ->label('pH')
-                    ->sortable(),
+            // TextColumn::make('remaining_chlorine')
+            //     ->label('Sisa Chlor')
+            //     ->sortable(),
 
-                TextColumn::make('tds_measurement')
-                    ->label('TDS Pengukuran')
-                    ->sortable(),
+            // TextColumn::make('ph')
+            //     ->label('pH')
+            //     ->sortable(),
 
-                TextColumn::make('temperature_measurement')
-                    ->label('Suhu Pengukuran')
-                    ->sortable(),
+            // TextColumn::make('tds_measurement')
+            //     ->label('TDS Pengukuran')
+            //     ->sortable(),
 
-                TextColumn::make('total_coliform')
-                    ->label('Total Coliform')
-                    ->sortable(),
+            // TextColumn::make('temperature_measurement')
+            //     ->label('Suhu Pengukuran')
+            //     ->sortable(),
 
-                TextColumn::make('e_coli')
-                    ->label('E. Coli')
-                    ->sortable(),
+            // TextColumn::make('total_coliform')
+            //     ->label('Total Coliform')
+            //     ->sortable(),
 
-                TextColumn::make('tds_lab')
-                    ->label('TDS Lab')
-                    ->sortable(),
+            // TextColumn::make('e_coli')
+            //     ->label('E. Coli')
+            //     ->sortable(),
 
-                TextColumn::make('turbidity')
-                    ->label('Kekeruhan')
-                    ->sortable(),
+            // TextColumn::make('tds_lab')
+            //     ->label('TDS Lab')
+            //     ->sortable(),
 
-                TextColumn::make('color')
-                    ->label('Warna'),
+            // TextColumn::make('turbidity')
+            //     ->label('Kekeruhan')
+            //     ->sortable(),
 
-                TextColumn::make('odor')
-                    ->label('Bau'),
+            // TextColumn::make('color')
+            //     ->label('Warna'),
 
-                TextColumn::make('temperature_lab')
-                    ->label('Suhu Lab')
-                    ->sortable(),
+            // TextColumn::make('odor')
+            //     ->label('Bau'),
 
-                TextColumn::make('aluminium')
-                    ->label('Aluminium')
-                    ->sortable(),
+            // TextColumn::make('temperature_lab')
+            //     ->label('Suhu Lab')
+            //     ->sortable(),
 
-                TextColumn::make('arsenic')
-                    ->label('Arsen')
-                    ->sortable(),
+            // TextColumn::make('aluminium')
+            //     ->label('Aluminium')
+            //     ->sortable(),
 
-                TextColumn::make('cadmium')
-                    ->label('Kadmium')
-                    ->sortable(),
+            // TextColumn::make('arsenic')
+            //     ->label('Arsen')
+            //     ->sortable(),
 
-                TextColumn::make('remaining_chlorine_lab')
-                    ->label('Sisa Khlor')
-                    ->sortable(),
+            // TextColumn::make('cadmium')
+            //     ->label('Kadmium')
+            //     ->sortable(),
 
-                TextColumn::make('chromium_val_6')
-                    ->label('Crom Val 6')
-                    ->sortable(),
+            // TextColumn::make('remaining_chlorine_lab')
+            //     ->label('Sisa Khlor')
+            //     ->sortable(),
 
-                TextColumn::make('fluoride')
-                    ->label('Florida')
-                    ->sortable(),
+            // TextColumn::make('chromium_val_6')
+            //     ->label('Crom Val 6')
+            //     ->sortable(),
 
-                TextColumn::make('iron')
-                    ->label('Besi')
-                    ->sortable(),
+            // TextColumn::make('fluoride')
+            //     ->label('Florida')
+            //     ->sortable(),
 
-                TextColumn::make('lead')
-                    ->label('Timbal')
-                    ->sortable(),
+            // TextColumn::make('iron')
+            //     ->label('Besi')
+            //     ->sortable(),
 
-                TextColumn::make('manganese')
-                    ->label('Mangan')
-                    ->sortable(),
+            // TextColumn::make('lead')
+            //     ->label('Timbal')
+            //     ->sortable(),
 
-                TextColumn::make('nitrite')
-                    ->label('Nitrit')
-                    ->sortable(),
+            // TextColumn::make('manganese')
+            //     ->label('Mangan')
+            //     ->sortable(),
 
-                TextColumn::make('nitrate')
-                    ->label('Nitrat')
-                    ->sortable(),
+            // TextColumn::make('nitrite')
+            //     ->label('Nitrit')
+            //     ->sortable(),
 
-                TextColumn::make('ph_lab')
-                    ->label('pH Lab')
-                    ->sortable(),
+            // TextColumn::make('nitrate')
+            //     ->label('Nitrat')
+            //     ->sortable(),
 
-                // Additional Notes
-                TextColumn::make('notes')
-                    ->label('Keterangan')
-                    ->sortable()
-                    ->searchable(),
-            ])
+            // TextColumn::make('ph_lab')
+            //     ->label('pH Lab')
+            //     ->sortable(),
+
+            // Additional Notes
+            TextColumn::make('notes')
+                ->label('Keterangan')
+                ->limit(10)
+                ->tooltip(fn($record) => $record->notes),
+
+        ])
             ->modifyQueryUsing(function (Builder $query) {
                 $user = Auth::user();
 
                 // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
-                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
                     return $query;
                 }
 
@@ -439,14 +445,19 @@ class PDAMResource extends Resource
                 // Define any filters if needed
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                ->modalHeading('Lihat Data PDAM'),
+                Tables\Actions\EditAction::make()
+                ->modalHeading('Ubah Data PDAM'),
+                Tables\Actions\DeleteAction::make()
+                ->modalHeading('Lihat Data PDAM'),
             ])
             ->headerActions([
                 ActionsExportAction::make()
                     ->exporter(PdamExporter::class)
-                    ->label('Cetak Formulir PDAM')
-                    ->modalHeading('Cetak Formulir PDAM')
-                    ->modalButton('Print')
+                    ->label('Ekspor Formulir PDAM')
+                    ->modalHeading('Ekspor Formulir PDAM')
+                    ->modalButton('Ekspor')
                     ->columnMapping(false)
             ])
             ->bulkActions([
@@ -466,7 +477,7 @@ class PDAMResource extends Resource
         return [
             'index' => Pages\ListPDAMS::route('/'),
             // 'create' => Pages\CreatePDAM::route('/create'),
-            'edit' => Pages\EditPDAM::route('/{record}/edit'),
+            // 'edit' => Pages\EditPDAM::route('/{record}/edit'),
         ];
     }
 }

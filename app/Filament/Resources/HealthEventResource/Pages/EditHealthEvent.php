@@ -10,6 +10,8 @@ class EditHealthEvent extends EditRecord
 {
     protected static string $resource = HealthEventResource::class;
 
+    protected static ? string $title = 'Ubah Data Jadwal Acara';
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Mengisi updated_by setiap kali data disimpan dalam mode edit

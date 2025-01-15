@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SanitationConditionResource\Widgets;
 
 use App\Models\SanitationCondition;
+use App\Models\HealthEvent;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
@@ -14,27 +15,39 @@ class SanitationConditionOverview extends BaseWidget
         // Ambil user yang sedang login
         $user = Auth::user();
 
-        // Query default untuk SanitationCondition
-        $query = SanitationCondition::query();
+        // Variabel untuk menyimpan total laporan
+        $totalReports = 0;
 
         // Logika akses berdasarkan role
-        if ($user->role === 'Puskesmas') {
-            // Puskesmas hanya bisa melihat laporan terkait puskesmas mereka
-            $query->where('puskesmas_id', $user->health_center_id);
-        } elseif ($user->role === 'Petugas' || $user->role === 'Kader') {
-            // Petugas dan Kader hanya bisa melihat laporan yang mereka buat
-            $query->where('created_by', $user->id);
-        }
+        switch ($user->role) {
+            case 'admin':
+            case 'dinas_kesehatan':
+                // Admin dan Dinas Kesehatan melihat semua laporan
+                $totalReports = SanitationCondition::count();
+                break;
 
-        // Hitung total laporan
-        $totalReports = $query->count();
+            case 'puskesmas':
+                // Mengambil semua laporan yang event-nya memiliki health_center_id = $user->health_center_id
+                $totalReports = SanitationCondition::whereHas('user.healthCenter', function ($query) use ($user) {
+                    $query->where('id', $user->health_center_id);
+                })->count();
+                break;
+
+            case 'petugas':
+            case 'kader':
+                // Petugas dan Kader melihat laporan yang mereka buat
+                $totalReports = SanitationCondition::where('created_by', $user->id)->count();
+                break;
+
+            default:
+                // Role lain tidak memiliki akses
+                $totalReports = 0;
+        }
 
         return [
             Stat::make('Total Laporan Konseling Sanitasi', $totalReports)
-                ->description('Jumlah total laporan konseling sanitasi')
-                ->descriptionIcon('heroicon-o-home')
-                ->color('info')
-                ->chart([$totalReports]),
+                ->description('Jumlah total laporan Konseling Sanitasi berdasarkan role Anda')
+                ->descriptionIcon('heroicon-o-document-text'),
         ];
     }
 
@@ -47,6 +60,7 @@ class SanitationConditionOverview extends BaseWidget
             return false;
         }
 
+        // Role yang diizinkan
         return in_array($user->role, ['admin', 'dinas_kesehatan', 'puskesmas', 'petugas', 'kader']);
     }
 }

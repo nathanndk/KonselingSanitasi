@@ -11,41 +11,32 @@ class PatientStatsOverview extends BaseWidget
 {
     protected function getStats(): array
     {
-        // Dapatkan user yang sedang login
-        $user = Auth::user();
+        $stats = Patient::selectRaw("gender, COUNT(*) as total")
+            ->groupBy('gender')
+            ->get()
+            ->pluck('total', 'gender');
 
-        // Periksa role dan filter data berdasarkan aturan
-        $query = Patient::query();
-
-        // Hitung statistik
-        $totalPatients = $query->count();
-        $malePatients = $query->where('gender', 'L')->count();
-        $femalePatients = $query->where('gender', 'P')->count();
+        $totalPatients = $stats->sum();
+        $malePatients = $stats->get('L', 0);
+        $femalePatients = $stats->get('P', 0);
 
         return [
             Stat::make('Total Pasien', $totalPatients)
-                ->description("👨 Laki-laki: {$malePatients} | 👩 Perempuan: {$femalePatients}")
-                ->descriptionIcon('heroicon-o-users')
-                ->color('success')
-                ->chart([$totalPatients, $malePatients, $femalePatients]),
+                ->description('Total pasien yang terdata')
+                ->descriptionIcon('heroicon-o-user-group'),
 
             Stat::make('Total Laki-laki', $malePatients)
                 ->description('Total pasien laki-laki yang terdata')
-                ->descriptionIcon('heroicon-o-user')
-                ->color('primary')
-                ->chart([$malePatients]),
+                ->descriptionIcon('heroicon-o-users'),
 
             Stat::make('Total Perempuan', $femalePatients)
                 ->description('Total pasien perempuan yang terdata')
-                ->descriptionIcon('heroicon-o-user-group')
-                ->color('warning')
-                ->chart([$femalePatients]),
+                ->descriptionIcon('heroicon-o-users'),
         ];
     }
 
     public static function canView(): bool
     {
-        // Cek apakah user login dan role sesuai
         $user = Auth::user();
 
         if (!$user) {

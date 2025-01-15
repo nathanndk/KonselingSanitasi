@@ -12,7 +12,7 @@ class Address extends Model
     protected $table = 'address';
 
     protected $fillable = [
-        'street', 'district_code', 'subdistrict_code'
+        'street', 'district_code', 'subdistrict_code', 'rt', 'rw'
     ];
 
     public function healthCenters()
@@ -25,8 +25,13 @@ class Address extends Model
         return $this->hasMany(Patient::class);
     }
 
-    public function counselingReports()
+    public function district()
     {
-        return $this->hasMany(CounselingReport::class);
+        return $this->belongsTo(District::class, 'district_code', 'district_code');
+    }
+
+    public function subdistrict()
+    {
+        return $this->belongsTo(Subdistrict::class, 'subdistrict_code', 'subdistrict_code');
     }
 }

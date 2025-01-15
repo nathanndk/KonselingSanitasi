@@ -13,6 +13,8 @@ class CreateAddressTable extends Migration
             $table->string('street', 255)->nullable();
             $table->string('district_code', 5)->nullable();
             $table->string('subdistrict_code', 5)->nullable();
+            $table->string('rt', 3)->nullable();
+            $table->string('rw', 3)->nullable();
             $table->timestamps();
 
             // Foreign key constraints

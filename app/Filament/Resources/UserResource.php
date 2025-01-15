@@ -17,6 +17,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class UserResource extends Resource
 {
@@ -63,10 +64,11 @@ class UserResource extends Resource
                                 ->label('NIK')
                                 ->minLength(16)
                                 ->maxLength(16)
+                                ->numeric()
+                                ->required()
                                 ->unique(ignorable: fn($record) => $record)
                                 ->placeholder('Masukkan 16 digit NIK')
                                 ->helperText('Nomor Induk Kependudukan harus valid, pastikan tidak ada kesalahan.')
-                                ->unique(ignorable: fn($record) => $record)
                                 ->validationMessages([
                                     'required' => 'NIK wajib diisi.',
                                     'unique' => 'NIK sudah terdaftar. Harap periksa kembali.',
@@ -99,12 +101,12 @@ class UserResource extends Resource
                                 ]),
                         ]),
                     ])->collapsible(),
-                    Section::make('Keamanan')
+                Section::make('Keamanan')
                     ->schema([
                         TextInput::make('password')
                             ->password()
                             ->revealable()
-                            ->default(fn ($record) => $record ? $record->original_password : null) // Gunakan field asli jika disimpan dalam plaintext
+                            ->default(fn($record) => $record ? $record->original_password : null) // Gunakan field asli jika disimpan dalam plaintext
                             ->mutateDehydratedStateUsing(fn($state) => filled($state) ? Hash::make($state) : null) // Hash hanya jika ada input
                             ->dehydrated(fn($state) => filled($state)) // Simpan hanya jika ada input
                             ->required(fn(Page $livewire) => $livewire instanceof Pages\CreateUser) // Wajib hanya untuk halaman Create
@@ -150,19 +152,44 @@ class UserResource extends Resource
 
                             Select::make('role')
                                 ->label('Role')
-                                ->options([
-                                    'admin' => 'Admin',
-                                    'kader' => 'Kader',
-                                    'petugas' => 'Petugas',
-                                    'puskesmas' => 'Puskesmas',
-                                    'dinas_kesehatan' => 'Dinas Kesehatan',
-                                ])
+                                ->options(function () {
+                                    $userRole = auth()->user()->role;
+
+                                    // Filter opsi berdasarkan role pengguna
+                                    return match ($userRole) {
+                                        'admin' => [
+                                            'admin' => 'Admin',
+                                            'kader' => 'Kader',
+                                            'petugas' => 'Petugas',
+                                            'puskesmas' => 'Puskesmas',
+                                            'dinas_kesehatan' => 'Dinas Kesehatan',
+                                        ],
+                                        'dinas_kesehatan' => [
+                                            'puskesmas' => 'Puskesmas',
+                                            'kader' => 'Kader',
+                                            'petugas' => 'Petugas',
+                                        ],
+                                        'puskesmas' => [
+                                            'kader' => 'Kader',
+                                            'petugas' => 'Petugas',
+                                        ],
+                                        default => [],
+                                    };
+                                })
                                 ->required()
                                 ->placeholder('Pilih role pengguna')
-                                ->helperText('Pilih peran sesuai tugas dan tanggung jawab Anda di sistem.')
+                                ->helperText(function () {
+                                    $role = auth()->user()->role;
+                                    return match ($role) {
+                                        'admin' => 'Anda dapat memilih semua role.',
+                                        'dinas_kesehatan' => 'Hanya dapat membuat role Puskesmas.',
+                                        'puskesmas' => 'Hanya dapat membuat role Petugas atau Kader.',
+                                        default => 'Anda tidak memiliki izin untuk memilih role.',
+                                    };
+                                })
                                 ->validationMessages([
                                     'required' => 'Role wajib dipilih.',
-                                ]),
+                                ])
                         ]),
                     ])->collapsible(),
             ]);
@@ -228,12 +255,34 @@ class UserResource extends Resource
                 // Tambahkan filter jika diperlukan
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->modalHeading('Ubah Data Pengguna'),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('Hapus Data Pengguna'),
             ])
+
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-            ]);
+            ])
+            ->modifyQueryUsing(function (Builder $query) {
+                $user = auth()->user();
+
+                // Jika pengguna bukan admin
+                if ($user->role !== 'admin') {
+                    $query->where('role', '!=', 'admin'); // Sembunyikan data dengan role admin
+                }
+
+                // Jika pengguna adalah puskesmas
+                if ($user->role === 'puskesmas') {
+                    $query->where(function ($query) use ($user) {
+                        $query->where('id', $user->id) // Akun pengguna sendiri
+                            ->orWhere(function ($subQuery) use ($user) {
+                                $subQuery->whereIn('role', ['petugas', 'kader']) // Petugas dan kader
+                                    ->where('health_center_id', $user->health_center_id); // Puskesmas yang sama
+                            });
+                    });
+                }
+            });
     }
 
     public static function getRelations(): array
@@ -247,8 +296,8 @@ class UserResource extends Resource
     {
         return [
             'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            // 'create' => Pages\CreateUser::route('/create'),
+            // 'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }

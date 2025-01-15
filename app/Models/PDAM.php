@@ -64,36 +64,13 @@ class PDAM extends Model
         'risk_level' => TingkatResiko::class,
     ];
 
-    /**
-     * Get the patient associated with the PDAM entry.
-     */
     public function patient()
     {
         return $this->belongsTo(Patient::class);
     }
-
-    /**
-     * Get the event associated with the PDAM entry.
-     */
     public function events()
     {
         return $this->belongsTo(HealthEvent::class);
-    }
-
-    /**
-     * Get the user who created the PDAM entry.
-     */
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    /**
-     * Get the user who last updated the PDAM entry.
-     */
-    public function updater()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function user()

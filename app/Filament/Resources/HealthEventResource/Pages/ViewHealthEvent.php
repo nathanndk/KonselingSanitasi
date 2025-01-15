@@ -12,6 +12,8 @@ class ViewHealthEvent extends ViewRecord
 {
     protected static string $resource = HealthEventResource::class;
 
+    protected static ? string $title = 'Lihat Data Jadwal Acara';
+
     public function getRelationManagers(): array
     {
         return [
@@ -20,8 +22,5 @@ class ViewHealthEvent extends ViewRecord
             PdamRelationManager::class,
         ];
     }
-    public static function getPluralLabel(): string
-    {
-        return 'Lihat Acara Kesehatan';
-    }
+
 }

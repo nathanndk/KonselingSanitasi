@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use AddressSeeder;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -199,14 +200,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DistrictSeeder::class,
             SubdistrictSeeder::class,
-            // HealthEventSeeder::class,
+            HealthEventSeeder::class,
             // AddressSeeder::class,
-            // PdamConditionSeeder::class,
-            // PdamParameterCategorySeeder::class,
-            // PDAMParameterSeeder::class,
-            // HouseConditionSeeder::class,
-            // HouseParameterCategorySeeder::class,
-            // HouseParameterSeeder::class,
+                // PdamConditionSeeder::class,
+                // PdamParameterCategorySeeder::class,
+                // PDAMParameterSeeder::class,
+                // HouseConditionSeeder::class,
+                // HouseParameterCategorySeeder::class,
+                // HouseParameterSeeder::class,
             HealthCenterSeeder::class,
             HealthCenterUserSeeder::class,
             // PatientSeeder::class,

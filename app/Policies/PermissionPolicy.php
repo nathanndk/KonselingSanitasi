@@ -21,7 +21,8 @@ class PermissionPolicy
      */
     public function view(User $user, Permission $permission): bool
     {
-        return $user->hasRole(['Admin']);
+        // return $user->hasRole(['Admin']);
+        return false;
     }
 
     /**
@@ -29,7 +30,8 @@ class PermissionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Admin']);
+        // return $user->hasRole(['Admin']);
+        return false;
     }
 
     /**

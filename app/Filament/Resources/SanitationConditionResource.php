@@ -227,14 +227,14 @@ class SanitationConditionResource extends Resource
             ->columns([
 
                 TextColumn::make('sampling_date')
-                    ->label('Tanggal Pelaksanaan Konseling')
+                    ->label('Tanggal Pelaksanaan')
                     ->date('d F Y')
                     ->sortable(),
 
                 TextColumn::make('patient.name')
                     ->label('Nama Pasien')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
+
                 TextColumn::make('patient.address.street')
                     ->label('Jalan')
                     ->searchable()
@@ -251,24 +251,32 @@ class SanitationConditionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('condition')
-                    ->label('Kondisi/Masalah'),
+                    ->label('Kondisi/Masalah')
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->condition),
 
                 TextColumn::make('recommendation')
-                    ->label('Saran/Rekomendasi'),
+                    ->label('Saran/Rekomendasi')
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->recommendation),
 
                 TextColumn::make('home_visit_date')
                     ->label('Tanggal Kunjungan Rumah')
-                    ->date('d F Y')
+                    ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('intervention')
                     ->label('Intervensi')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->intervention),
 
                 TextColumn::make('notes')
                     ->label('Keterangan')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->notes),
 
                 TextColumn::make('created_by')
                     ->label('Dibuat Oleh')
@@ -294,7 +302,7 @@ class SanitationConditionResource extends Resource
                 $user = Auth::user();
 
                 // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
-                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
                     return $query;
                 }
 
@@ -304,12 +312,10 @@ class SanitationConditionResource extends Resource
                         $q->where('id', $user->health_center_id);
                     });
                 }
-
                 // Jika petugas atau kader, hanya melihat data yang mereka buat
                 if (in_array($user->role, ['petugas', 'kader'])) {
-                    return $query->whereHas('user.healthCenter', function ($q) use ($user) {
-                        $q->where('id', $user->health_center_id);
-                    });                }
+                    return $query->where('created_by', $user->id);
+                }
 
                 // Default, jika role lain
                 return $query->where('id', null); // Tidak menampilkan data apa pun
@@ -319,16 +325,19 @@ class SanitationConditionResource extends Resource
                 // Tambahkan filter jika diperlukan
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalHeading('Lihat Data Konseling Sanitasi'),
+                Tables\Actions\EditAction::make()
+                    ->modalHeading('Ubah Data Konseling Sanitasi'),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('Hapus Data Konseling Sanitasi'),
             ])
             ->headerActions([
                 ExportAction::make()
                     ->exporter(SanitationConditionExporter::class)
                     ->label('Cetak Formulir Konseling Sanitasi')
-                    ->modalHeading('Cetak Formulir Konseling Sanitasi')
-                    ->modalButton('Print')
+                    ->modalHeading('Ekspor Formulir Konseling Sanitasi')
+                    ->modalButton('Ekspor')
                     ->columnMapping(false),
             ])
             ->bulkActions([

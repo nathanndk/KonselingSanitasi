@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\HealthEventResource\RelationManagers;
 
 use App\Models\District;
+use App\Models\Patient;
 use App\Models\Subdistrict;
 use Filament\Forms;
 use Filament\Forms\Components\Card;
@@ -23,6 +24,9 @@ class CounselingReportsRelationManager extends RelationManager
 {
     protected static string $relationship = 'counselingReports';
 
+    protected static ?string $title = 'Sanitasi Konseling';
+
+
     public function form(Form $form): Form
     {
         return $form
@@ -40,12 +44,31 @@ class CounselingReportsRelationManager extends RelationManager
                         Select::make('patient_id')
                             ->label('Nama Pasien')
                             ->searchable()
-                            ->relationship('patient', 'name')
+                            ->columnSpanFull()
+                            ->getSearchResultsUsing(
+                                fn(string $search): array =>
+                                Patient::query()
+                                    ->where('nik', 'like', "%{$search}%") // Pencarian berdasarkan NIK
+                                    ->orWhere('name', 'like', "%{$search}%") // Tambahkan pencarian nama jika dibutuhkan
+                                    ->limit(50)
+                                    ->get()
+                                    ->mapWithKeys(fn($patient) => [$patient->id => "{$patient->name} ({$patient->nik})"]) // Format: Nama (NIK)
+                                    ->toArray()
+                            )
+                            ->getOptionLabelUsing(
+                                fn($value): ?string =>
+                                Patient::find($value)?->name // Tampilkan hanya Nama Pasien saat dipilih
+                            )
                             ->required()
                             ->preload()
+                            ->createOptionUsing(
+                                fn($value): ?Patient =>
+                                Patient::find($value) // Buat opsi berdasarkan ID Pasien
+                            )
                             ->placeholder('Pilih nama pasien')
-                            ->helperText('Cari nama pasien dari daftar yang tersedia.')
+                            ->helperText('Cari pasien menggunakan NIK atau nama.')
                             ->createOptionForm([
+                                // Form pembuatan pasien baru tetap diisi sesuai kebutuhan Anda
                                 Forms\Components\Fieldset::make('Informasi Personal')
                                     ->schema([
                                         TextInput::make('nik')
@@ -55,12 +78,12 @@ class CounselingReportsRelationManager extends RelationManager
                                             ->unique()
                                             ->placeholder('Masukkan NIK 16 digit')
                                             ->helperText('NIK adalah Nomor Induk Kependudukan yang terdapat di KTP.')
+                                            ->numeric()
                                             ->columnSpanFull(),
 
                                         TextInput::make('name')
                                             ->label('Nama')
                                             ->required()
-                                            ->unique()
                                             ->maxLength(50)
                                             ->placeholder('Masukkan nama lengkap Anda sesuai KTP')
                                             ->helperText('Gunakan nama sesuai identitas resmi.')
@@ -85,81 +108,26 @@ class CounselingReportsRelationManager extends RelationManager
                                             ->placeholder('Pilih jenis kelamin')
                                             ->helperText('Pilih salah satu sesuai jenis kelamin Anda.')
                                             ->columnSpanFull(),
-
                                         TextInput::make('phone_number')
                                             ->label('Nomor Telepon')
                                             ->minLength(10)
                                             ->maxLength(15)
                                             ->unique()
+                                            ->numeric()
                                             ->placeholder('Masukkan nomor telepon aktif')
                                             ->helperText('Gunakan nomor telepon yang aktif dan dapat dihubungi.')
                                             ->columnSpanFull(),
                                     ])
                                     ->columnSpanFull(),
-
-                                Forms\Components\Fieldset::make('Alamat')
-                                    ->schema([
-                                        // Select::make('health_center_id')
-                                        //     ->label('Puskesmas')
-                                        //     ->relationship('healthCenter', 'name')
-                                        //     ->helperText('Pilih tempat puskesmas anda terdaftar.')
-                                        //     ->placeholder('Pilih puskesmas anda')
-                                        //     ->searchable()
-                                        //     ->preload()
-                                        //     ->columnSpanFull(),
-
-                                        Textarea::make('address.street')
-                                            ->label('Jalan')
-                                            ->placeholder('Masukkan nama jalan tempat anda tinggal saat ini')
-                                            ->helperText('Cantumkan nama jalan sesuai alamat resmi.')
-                                            ->columnSpanFull(),
-
-                                        Select::make('address.district_code')
-                                            ->label('Kecamatan')
-                                            ->options(District::pluck('district_name', 'district_code'))
-                                            ->searchable()
-                                            ->reactive()
-                                            ->helperText('Isi dengan kecamatan anda tinggal saat ini.')
-                                            ->placeholder('Pilih kecamatan anda')
-                                            ->afterStateUpdated(function ($set) {
-                                                $set('address.subdistrict_code', null);
-                                            })
-                                            ->columnSpan(1),
-
-                                        Select::make('address.subdistrict_code')
-                                            ->label('Kelurahan')
-                                            ->helperText('Isi dengan kelurahan anda tinggal saat ini.')
-                                            ->placeholder('Pilih kelurahan anda')
-                                            ->options(function (callable $get) {
-                                                $districtCode = $get('address.district_code');
-                                                return $districtCode
-                                                    ? Subdistrict::where('district_code', $districtCode)->pluck('subdistrict_name', 'subdistrict_code')
-                                                    : [];
-                                            })
-                                            ->searchable()
-                                            ->columnSpan(1),
-                                        Forms\Components\TextInput::make('address.rt')
-                                            ->label('RT')
-                                            ->maxLength(3)
-                                            ->minLength(3)
-                                            ->placeholder('Masukkan RT (3 digit)')
-                                            ->helperText('Masukkan RT yang sesuai dengan alamat Anda.')
-                                            ->numeric()
-                                            ->columnSpan(1),
-
-                                        Forms\Components\TextInput::make('address.rw')
-                                            ->label('RW')
-                                            ->maxLength(3)
-                                            ->minLength(3)
-                                            ->placeholder('Masukkan RW (3 digit)')
-                                            ->helperText('Masukkan RW yang sesuai dengan alamat Anda.')
-                                            ->numeric()
-                                            ->columnSpan(1),
-                                    ])
-                                    ->columns(2)
-                                    ->label('Detail Alamat'),
                             ])
-                            ->columnSpanFull(),
+                            ->createOptionUsing(function (array $data): int {
+                                // Logika penyimpanan data baru
+                                $record = Patient::create($data);
+
+                                // Mengembalikan primary key dari record yang baru dibuat
+                                return $record->getKey();
+                            })
+
                     ])
                     ->columnSpanFull(),
 
@@ -229,14 +197,14 @@ class CounselingReportsRelationManager extends RelationManager
             ->columns([
 
                 TextColumn::make('sampling_date')
-                    ->label('Tanggal Pelaksanaan Konseling')
-                    ->date()
+                    ->label('Tanggal Pelaksanaan')
+                    ->date('d F Y')
                     ->sortable(),
 
                 TextColumn::make('patient.name')
                     ->label('Nama Pasien')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
+
                 TextColumn::make('patient.address.street')
                     ->label('Jalan')
                     ->searchable()
@@ -253,10 +221,14 @@ class CounselingReportsRelationManager extends RelationManager
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('condition')
-                    ->label('Kondisi/Masalah'),
+                    ->label('Kondisi/Masalah')
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->condition),
 
                 TextColumn::make('recommendation')
-                    ->label('Saran/Rekomendasi'),
+                    ->label('Saran/Rekomendasi')
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->recommendation),
 
                 TextColumn::make('home_visit_date')
                     ->label('Tanggal Kunjungan Rumah')
@@ -266,11 +238,15 @@ class CounselingReportsRelationManager extends RelationManager
 
                 TextColumn::make('intervention')
                     ->label('Intervensi')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->intervention),
 
                 TextColumn::make('notes')
                     ->label('Keterangan')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->limit(10)
+                    ->tooltip(fn($record) => $record->notes),
 
                 TextColumn::make('created_by')
                     ->label('Dibuat Oleh')
@@ -317,7 +293,7 @@ class CounselingReportsRelationManager extends RelationManager
                 $user = Auth::user();
 
                 // Jika admin atau bidang dinas kesehatan, tidak ada pembatasan data
-                if (in_array($user->role, ['admin', 'bidang_dinkes'])) {
+                if (in_array($user->role, ['admin', 'dinas_kesehatan'])) {
                     return $query;
                 }
 
@@ -339,17 +315,22 @@ class CounselingReportsRelationManager extends RelationManager
                 return $query->where('id', null); // Tidak menampilkan data apa pun
             })
             ->actions([
+                Tables\Actions\ViewAction::make()
+                ->modalHeading('Lihat Data Konseling Sanitasi'),
                 Tables\Actions\EditAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['updated_by'] = Auth::id();
                         return $data;
-                    }),
-                Tables\Actions\DeleteAction::make(),
+                    })
+                    ->modalHeading('Ubah Data Konseling Sanitasi'),
+                Tables\Actions\DeleteAction::make()
+                ->modalHeading('Hapus Data Konseling Sanitasi'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            // ->bulkActions([
+            //     Tables\Actions\BulkActionGroup::make([
+            //         Tables\Actions\DeleteBulkAction::make(),
+            //     ]),
+            // ])
+        ;
     }
 }

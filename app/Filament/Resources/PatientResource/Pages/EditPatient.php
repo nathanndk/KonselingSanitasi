@@ -12,6 +12,9 @@ class EditPatient extends EditRecord
 {
     protected static string $resource = PatientResource::class;
 
+    protected static ? string $title = 'Ubah Data Pasien';
+
+
     protected function getHeaderActions(): array
     {
         return [
@@ -28,6 +31,8 @@ class EditPatient extends EditRecord
                 'street' => $data['address']['street'],
                 'district_code' => $data['address']['district_code'],
                 'subdistrict_code' => $data['address']['subdistrict_code'],
+                'rt' => $data['address']['rt'] ?? null,
+                'rw' => $data['address']['rw'] ?? null,
             ]);
 
             // Menyimpan address_id di data pasien
@@ -52,16 +57,22 @@ class EditPatient extends EditRecord
     {
         return $this->getResource()::getUrl('index');
     }
-
     protected function mutateFormDataBeforeFill(array $data): array
-{
-    if ($this->record->address) {
-        $data['address']['street'] = $this->record->address->street;
-        $data['address']['district_code'] = $this->record->address->district_code;
-        $data['address']['subdistrict_code'] = $this->record->address->subdistrict_code;
+    {
+        // Ambil NIK langsung dari record di database
+        $data['nik'] = $this->record->nik;
+
+        if ($this->record->address) {
+            $data['address']['street'] = $this->record->address->street;
+            $data['address']['district_code'] = $this->record->address->district_code;
+            $data['address']['subdistrict_code'] = $this->record->address->subdistrict_code;
+            $data['address']['rt'] = $this->record->address->rt;
+            $data['address']['rw'] = $this->record->address->rw;
+        }
+
+        return $data;
     }
 
-    return $data;
-}
+
 
 }

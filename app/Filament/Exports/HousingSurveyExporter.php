@@ -15,7 +15,7 @@ class HousingSurveyExporter extends Exporter
     {
         return [
             ExportColumn::make('id')
-                ->label('ID'),
+                ->label('No'),
 
             ExportColumn::make('sampling_date')
                 ->label('Tanggal Kunjungan'),
@@ -175,18 +175,6 @@ class HousingSurveyExporter extends Exporter
 
             ExportColumn::make('notes')
                 ->label('Catatan'),
-
-            ExportColumn::make('created_by')
-                ->label('Dibuat Oleh'),
-
-            ExportColumn::make('updated_by')
-                ->label('Diperbarui Oleh'),
-
-            ExportColumn::make('created_at')
-                ->label('Tanggal Dibuat'),
-
-            ExportColumn::make('updated_at')
-                ->label('Tanggal Diperbarui'),
         ];
     }
 
